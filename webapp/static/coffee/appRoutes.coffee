@@ -1,4 +1,4 @@
-angular.module('myLilApp').config ['$routeProvider', ($routeProvider) ->
+angular.module('myLilApp').config ['$routeProvider', '$locationProvider', ($routeProvider, $locationProvider) ->
     $routeProvider
         .when('/', {
             controller: 'HomeCtrl'
@@ -7,4 +7,8 @@ angular.module('myLilApp').config ['$routeProvider', ($routeProvider) ->
         .otherwise({
             redirectTo: '/'    
         })
+
+    $locationProvider
+        .html5Mode(true)
+        .hashPrefix('!');
 ]

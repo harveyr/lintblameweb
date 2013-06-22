@@ -1,7 +1,7 @@
 angular.module(DIRECTIVE_MODULE).directive 'userFeedback', () ->
     directive =
         template: """
-            <div class="row-fluid">
+            <div class="row-fluid" ng-show="fbModel.html">
                 <div class="span12 alert {{fbModel.alertClass}}">
                     <span class="{{fbModel.iconClass}}" ng-show="fbModel.iconClass"></span>
                     <span ng-bind-html-unsafe="fbModel.html"></span>

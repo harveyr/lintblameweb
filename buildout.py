@@ -26,6 +26,7 @@ def run(command, description=None):
 run('pip install flask', 'Installing Flask...')
 
 os.mkdir(bower_dir)
+run('bower install underscore', 'Installing Underscore Bower package...')
 run('bower install angular', 'Installing AngularJs Bower package...')
 run('bower install bootstrap', 'Installing Bootstrap Bower package...')
 

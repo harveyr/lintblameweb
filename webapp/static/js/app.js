@@ -11,7 +11,7 @@
   angular.module(DIRECTIVE_MODULE).directive('userFeedback', function() {
     var directive;
     return directive = {
-      template: "<div class=\"row-fluid\">\n    <div class=\"span12 alert {{fbModel.alertClass}}\">\n        <span class=\"{{fbModel.iconClass}}\" ng-show=\"fbModel.iconClass\"></span>\n        <span ng-bind-html-unsafe=\"fbModel.html\"></span>\n    </div>\n</div>",
+      template: "<div class=\"row-fluid\" ng-show=\"fbModel.html\">\n    <div class=\"span12 alert {{fbModel.alertClass}}\">\n        <span class=\"{{fbModel.iconClass}}\" ng-show=\"fbModel.iconClass\"></span>\n        <span ng-bind-html-unsafe=\"fbModel.html\"></span>\n    </div>\n</div>",
       link: function(scope) {
         var setFeedback;
         scope.fbModel = {};
@@ -43,14 +43,34 @@
   angular.module('myLilApp').controller('HomeCtrl', function($scope, $rootScope) {});
 
   angular.module('myLilApp').config([
-    '$routeProvider', function($routeProvider) {
-      return $routeProvider.when('/', {
+    '$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
+      $routeProvider.when('/', {
         controller: 'HomeCtrl',
         templateUrl: 'static/partials/home.html'
       }).otherwise({
         redirectTo: '/'
       });
+      return $locationProvider.html5Mode(true).hashPrefix('!');
     }
   ]);
+
+  angular.module(DIRECTIVE_MODULE).directive('topNavbar', function($location) {
+    var directive;
+    return directive = {
+      replace: true,
+      template: "<div class=\"navbar\">\n    <div class=\"navbar-inner\">\n        <a class=\"brand\" href=\"#\">{{appName}}</a>\n        <ul class=\"nav\">\n            <li ng-repeat=\"link in navLinks\"\n                ng-class=\"{active: currentPath == link.href}\">\n                    <a href=\"{{link.href}}\">{{link.title}}</a>\n            </li>\n        </ul>\n    </div>\n</div>",
+      link: function(scope) {
+        scope.navLinks = [
+          {
+            href: '/',
+            title: 'Home'
+          }
+        ];
+        return scope.$on("$routeChangeSuccess", function(e, current, previous) {
+          return scope.currentPath = $location.path();
+        });
+      }
+    };
+  });
 
 }).call(this);
