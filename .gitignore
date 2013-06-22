@@ -1,4 +1,9 @@
 *.py[cod]
+.Python
+python2.7
+*.swp
+.DS_Store
+bower_components
 
 # C extensions
 *.so
