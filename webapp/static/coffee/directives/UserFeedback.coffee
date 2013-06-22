@@ -26,3 +26,6 @@ angular.module(DIRECTIVE_MODULE).directive 'userFeedback', () ->
 
             scope.$on 'warnFeedback', (e, html) ->
                 setFeedback html, '', 'icon-info-sign'
+
+            scope.$on 'clearFeedback', (e) ->
+                setFeedback null, '', ''

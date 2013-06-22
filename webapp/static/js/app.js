@@ -29,8 +29,11 @@
         scope.$on('errorFeedback', function(e, html) {
           return setFeedback(html, 'alert-error', 'icon-exclamation-sign');
         });
-        return scope.$on('warnFeedback', function(e, html) {
+        scope.$on('warnFeedback', function(e, html) {
           return setFeedback(html, '', 'icon-info-sign');
+        });
+        return scope.$on('clearFeedback', function(e) {
+          return setFeedback(null, '', '');
         });
       }
     };
