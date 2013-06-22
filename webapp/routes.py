@@ -8,5 +8,4 @@ app = webapp.app
 
 @app.route('/')
 def index_route():
-    logger.debug('here')
     return render_template('index.html')
