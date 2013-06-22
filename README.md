@@ -23,7 +23,9 @@ A web app shell built on a few of my favorite things:
 2. Create your virtualenv: `virtualenv path/to/clone`
 3. Enter your virtualenv: `cd path/to/clone`, `source bin/activate`
 4. Install dependencies: `python buildout.py`
-5. Profiteer!
+5. Run the app: `python app.py`
+6. Point your browser at http://localhost:8123
+6. Profiteer!
 
 ## Built-in Angular Directives
 
