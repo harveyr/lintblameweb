@@ -17,9 +17,10 @@ base_dir = os.getcwd()
 bower_dir = 'webapp/static/bower_components'
 assert(os.path.exists(bower_dir))
 
+
 def run(command, description=None):
     if description:
-        print ''
+        print('')
         print(description)
     call(shlex.split(command))
 

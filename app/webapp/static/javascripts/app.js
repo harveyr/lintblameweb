@@ -8,6 +8,25 @@
 
   angular.module(DIRECTIVE_MODULE, []);
 
+  angular.module(DIRECTIVE_MODULE).directive('topNavbar', function($location) {
+    var directive;
+    return directive = {
+      replace: true,
+      template: "<div class=\"navbar\">\n    <div class=\"navbar-inner\">\n        <a class=\"brand\" href=\"#\">{{appName}}</a>\n        <ul class=\"nav\">\n            <li ng-repeat=\"link in navLinks\"\n                ng-class=\"{active: currentPath == link.href}\">\n                    <a href=\"{{link.href}}\">{{link.title}}</a>\n            </li>\n        </ul>\n    </div>\n</div>",
+      link: function(scope) {
+        scope.navLinks = [
+          {
+            href: '/',
+            title: 'Home'
+          }
+        ];
+        return scope.$on("$routeChangeSuccess", function(e, current, previous) {
+          return scope.currentPath = $location.path();
+        });
+      }
+    };
+  });
+
   angular.module(DIRECTIVE_MODULE).directive('userFeedback', function() {
     var directive;
     return directive = {
@@ -56,24 +75,5 @@
       return $locationProvider.html5Mode(true).hashPrefix('!');
     }
   ]);
-
-  angular.module(DIRECTIVE_MODULE).directive('topNavbar', function($location) {
-    var directive;
-    return directive = {
-      replace: true,
-      template: "<div class=\"navbar\">\n    <div class=\"navbar-inner\">\n        <a class=\"brand\" href=\"#\">{{appName}}</a>\n        <ul class=\"nav\">\n            <li ng-repeat=\"link in navLinks\"\n                ng-class=\"{active: currentPath == link.href}\">\n                    <a href=\"{{link.href}}\">{{link.title}}</a>\n            </li>\n        </ul>\n    </div>\n</div>",
-      link: function(scope) {
-        scope.navLinks = [
-          {
-            href: '/',
-            title: 'Home'
-          }
-        ];
-        return scope.$on("$routeChangeSuccess", function(e, current, previous) {
-          return scope.currentPath = $location.path();
-        });
-      }
-    };
-  });
 
 }).call(this);
