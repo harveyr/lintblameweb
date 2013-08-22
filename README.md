@@ -1,5 +1,9 @@
 # fangapp
 
+*Note: This repo is in flux for the time being, as I'm now playing primarily with Zurb and Go. I still salvage bits and pieces from this, so I'm leaving it here for now.*
+
+---
+
 A web app shell built on a few of my favorite things:
 
 * [Flask](http://flask.pocoo.org/)
