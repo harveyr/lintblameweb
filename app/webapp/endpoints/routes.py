@@ -1,7 +1,9 @@
 import os
+import time
+import datetime
 import logging
 from collections import defaultdict
-from ..util import jsonify
+from ..util import jsonify, utc_ms
 from flask import (
     render_template,
     request,
@@ -33,6 +35,13 @@ def get_path_or_400():
         path = os.path.expanduser(path)
     return path
 
+def paths_or_400():
+    joined_paths = request.args.get('paths')
+    if not joined_paths:
+        abort(400)
+    return joined_paths.split(',')
+
+
 @blueprint.route('/dumb')
 def dumb_route():
     return jsonify({'success': True})
@@ -60,6 +69,17 @@ def test_path():
 
     return jsonify(response)
 
+def _get_results(path):
+    result = {}
+    with open(path, 'r') as f:
+        result['lines'] = f.read().splitlines()
+    result['blame'] = blame.blame(path)
+    result['issues'] = []
+    if path.endswith('.py'):
+        result['issues'] += py.pylint_issues(path)
+        result['issues'] += py.pep8_issues(path)
+    return result
+
 @blueprint.route('/fullscan')
 def fullscan():
     joined_paths = request.args.get('paths')
@@ -68,8 +88,18 @@ def fullscan():
     paths = joined_paths.split(',')
     response = defaultdict(dict)
     for p in paths:
-        response[p]['blame'] = blame.blame(p)
-        response[p]['issues'] = defaultdict(dict)
-        response[p]['issues']['pylint'] = py.pylint_issues(p)
+        response[p] = _get_results(p)
     return jsonify(response)
 
+
+@blueprint.route('/poll')
+def poll_paths():
+    paths = paths_or_400()
+    since = float(int(request.args.get('since')) / 1000)
+    # since_date = datetime.datetime.fromtimestamp(since / 1000)
+    response = {}
+    for p in paths:
+        mod = os.path.getmtime(p)
+        if mod > since:
+            response[p] = _get_results(p)
+    return jsonify(response)
