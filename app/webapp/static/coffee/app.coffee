@@ -1,8 +1,10 @@
 app = angular.module(APP_NAME, [
     "#{APP_NAME}.services"
     "#{APP_NAME}.directives"
-]).run ($rootScope, Api) ->
+]).run ($rootScope, Api, Lints) ->
     $rootScope.appName = "lintblame"
+
+    $rootScope.lintResults = {}
 
     spinOpts =
         lines: 10, # The number of lines to draw
@@ -37,5 +39,25 @@ app = angular.module(APP_NAME, [
             return []
         return _.keys $rootScope.lintResults
 
-    $rootScope.updateResults = (path, results) ->
-        $rootScope.lintResults[path] = results
+    $rootScope.updateResults = (pathsAndData) ->
+        for path, data of pathsAndData
+            Lints.issueCount data
+            $rootScope.lintResults[path] = data
+
+        paths = _.keys $rootScope.lintResults
+        $rootScope.sortedPaths = paths.sort (a, b) ->
+            return Lints.issueCount($rootScope.lintResults[b]) - Lints.issueCount($rootScope.lintResults[a])
+
+        now = new Date()
+        lastRefresh = now.getHours() + ':'
+        mins = now.getMinutes()
+        if mins < 10
+            lastRefresh += '0'
+        lastRefresh += mins + ':'
+        secs = now.getSeconds()
+        if secs < 10
+            lastRefresh += '0'
+        lastRefresh += secs
+        $rootScope.lastRefresh = lastRefresh
+
+

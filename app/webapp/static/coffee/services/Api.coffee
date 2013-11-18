@@ -5,7 +5,7 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
         scan: ->
             return 'blah'
 
-        testPath: (path) ->
+        testPath: (path, branchMode=false) ->
             $rootScope.setLoading(true)
             deferred = $q.defer()
             config =
@@ -13,7 +13,10 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
                 params:
                     path: path
                 method: 'get'
-                cache: true
+                cache: false
+            if branchMode
+                console.log 'branchMode:', branchMode
+                config.params.branch = branchMode
             request = $http config
             request.success (response) ->
                 deferred.resolve response
@@ -30,7 +33,7 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
                 params:
                     paths: pathsParam
                 method: 'get'
-                cache: true
+                cache: false
             }
             request.success (response) ->
                 deferred.resolve response

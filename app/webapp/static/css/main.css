@@ -2,6 +2,11 @@ body {
   background-color: #26292c;
   color: #f2f2f2; }
 
+a.active {
+  color: #f59120; }
+a.inactive {
+  color: #8c8c8c; }
+
 .dim, .lint-issues .reporter {
   color: #b3b3b3; }
 
@@ -12,35 +17,47 @@ body {
   margin-top: 20px; }
 
 .title {
-  font-size: 24px; }
+  font-size: 20px;
+  position: relative;
+  top: -1px; }
+  .title > span {
+    color: #f9276c; }
 
-.menu-col {
-  border-right: 1px solid #ddd; }
-  .menu-col > div {
-    margin-top: 10px; }
-  .menu-col .buttons .btn {
-    width: 100%; }
+.menu-row {
+  margin-bottom: 15px; }
 
-.lint-issues .issue {
-  padding-left: 30px; }
-  .lint-issues .issue > div > div {
-    display: inline-block; }
-.lint-issues .line {
-  width: 30px; }
-.lint-issues .reporter {
-  width: 70px;
-  font-size: 11px; }
-.lint-issues .blame {
-  font-size: 11px;
-  color: #84bcde;
-  margin-right: 10px; }
-  .lint-issues .blame.blame-me {
-    color: #fb292d; }
+#target-path-input {
+  height: 24px;
+  font-size: 12px; }
 
-.code {
-  color: #dadbb1;
-  padding: 0 .4em;
+.lint-issues {
+  margin-top: 5px; }
+  .lint-issues .line-wrapper {
+    padding-left: 30px;
+    margin: 5px 0 10px 0; }
+    .lint-issues .line-wrapper code {
+      min-width: 500px; }
+  .lint-issues .issue {
+    padding-left: 30px;
+    margin: 5px 0; }
+    .lint-issues .issue > div {
+      display: inline-block;
+      margin-right: 5px; }
+  .lint-issues .line {
+    width: 20px; }
+  .lint-issues .reporter {
+    font-size: 11px; }
+  .lint-issues .blame {
+    font-size: 11px;
+    color: #84bcde; }
+    .lint-issues .blame.blame-me {
+      color: #fb292d; }
+
+code, .code {
+  color: #f59120;
+  padding: 4px 4px;
   font-family: menlo, monaco, "andale mono", "courier new", fixed;
+  font-size: 12px;
   -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
   -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
   box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;

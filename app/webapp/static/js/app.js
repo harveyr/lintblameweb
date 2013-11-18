@@ -43,9 +43,10 @@
     };
   });
 
-  app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api) {
+  app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api, Lints) {
     var spinOpts;
     $rootScope.appName = "lintblame";
+    $rootScope.lintResults = {};
     spinOpts = {
       lines: 10,
       length: 5,
@@ -83,8 +84,30 @@
       }
       return _.keys($rootScope.lintResults);
     };
-    return $rootScope.updateResults = function(path, results) {
-      return $rootScope.lintResults[path] = results;
+    return $rootScope.updateResults = function(pathsAndData) {
+      var data, lastRefresh, mins, now, path, paths, secs;
+      for (path in pathsAndData) {
+        data = pathsAndData[path];
+        Lints.issueCount(data);
+        $rootScope.lintResults[path] = data;
+      }
+      paths = _.keys($rootScope.lintResults);
+      $rootScope.sortedPaths = paths.sort(function(a, b) {
+        return Lints.issueCount($rootScope.lintResults[b]) - Lints.issueCount($rootScope.lintResults[a]);
+      });
+      now = new Date();
+      lastRefresh = now.getHours() + ':';
+      mins = now.getMinutes();
+      if (mins < 10) {
+        lastRefresh += '0';
+      }
+      lastRefresh += mins + ':';
+      secs = now.getSeconds();
+      if (secs < 10) {
+        lastRefresh += '0';
+      }
+      lastRefresh += secs;
+      return $rootScope.lastRefresh = lastRefresh;
     };
   });
 
@@ -99,8 +122,11 @@
         return 'blah';
       };
 
-      Api.prototype.testPath = function(path) {
+      Api.prototype.testPath = function(path, branchMode) {
         var config, deferred, request;
+        if (branchMode == null) {
+          branchMode = false;
+        }
         $rootScope.setLoading(true);
         deferred = $q.defer();
         config = {
@@ -109,8 +135,12 @@
             path: path
           },
           method: 'get',
-          cache: true
+          cache: false
         };
+        if (branchMode) {
+          console.log('branchMode:', branchMode);
+          config.params.branch = branchMode;
+        }
         request = $http(config);
         request.success(function(response) {
           deferred.resolve(response);
@@ -131,7 +161,7 @@
             paths: pathsParam
           },
           method: 'get',
-          cache: true
+          cache: false
         });
         request.success(function(response) {
           deferred.resolve(response);
@@ -169,13 +199,23 @@
   });
 
   angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, Api) {
-    var _targetPathChange;
-    _targetPathChange = function(path) {
+    var testPath, _targetPathChange;
+    $rootScope.branchMode = false;
+    _targetPathChange = function(andAccept) {
+      var path;
+      path = $scope.targetPathInput;
       if (path) {
-        return Api.testPath(path).then(function(response) {
+        $scope.pathAccepted = false;
+        return Api.testPath(path, $rootScope.branchMode).then(function(response) {
           $scope.pathExists = response.exists;
           $rootScope.targets = response.targets;
-          return $scope.acceptPath();
+          if (!_.isUndefined(response.vcs)) {
+            $scope.vcs = response.vcs;
+            $scope.branch = response.branch;
+          }
+          if (andAccept) {
+            return $scope.acceptPath();
+          }
         });
       }
     };
@@ -184,14 +224,31 @@
       if (!$rootScope.targets || $rootScope.targets.length === 0) {
         return;
       }
+      $scope.pathAccepted = true;
       return Api.fullScan($rootScope.targets).then(function(response) {
-        $rootScope.lintResults = response;
-        console.log('response:', response);
-        return Api.poll($rootScope.targets);
+        return $rootScope.updateResults(response);
       });
     };
-    $scope.targetPathInput = '/Users/harveyrogers/dev/lintblame/lintblame.py';
-    return _targetPathChange($scope.targetPathInput);
+    $scope.poll = function() {
+      return $scope.pollInterval = $interval(function() {
+        var paths;
+        paths = $rootScope.activePaths();
+        if (paths.length > 0) {
+          return Api.poll($rootScope.targets).then(function(response) {
+            if (!_.isEmpty(response)) {
+              return $rootScope.updateResults(response);
+            }
+          });
+        }
+      }, 2000);
+    };
+    $scope.toggleBranchMode = function() {
+      $rootScope.branchMode = !$rootScope.branchMode;
+      return $scope.targetPathChange(true);
+    };
+    testPath = '~/dev/ua/airship/airship/apps/messages';
+    $scope.targetPathInput = testPath;
+    return _targetPathChange(true);
   });
 
   angular.module(DIRECTIVE_MODULE).directive('lintIssues', function() {
@@ -202,7 +259,7 @@
         path: '=',
         data: '='
       },
-      template: "<div class=\"lint-issues\">\n    <div>\n        <span class=\"label label-warning\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"dim\">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>                    \n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"issue\">\n        <div ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n            <div class=\"line\">\n                {{issue.line}}<span ng-show=\"issue.column\">:{{issue.column}}</span>\n            </div>\n            <div class=\"reporter\">\n                [{{issue.reporter}}<span ng-show=\"issue.code\"> {{issue.code}}</span>]\n            </div>\n            <div class=\"blame\">\n                [{{blameLine(issue.line)}}]\n            </div>\n            <div class=\"message\">\n                {{issue.message}}\n            </div>\n        </div>\n    </div>\n</div>",
+      template: "<div class=\"lint-issues\">\n    <div>\n        <span class=\"label {{countClass}}\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"dim\">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>                    \n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\">\n        <code class=\"code\">\n            {{data.lines[line]}}\n        </code>\n        <div ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n            <div class=\"line\">\n                {{issue.line}}<span ng-show=\"issue.column\">:{{issue.column}}</span>\n            </div>\n            <div class=\"reporter\">\n                [{{issue.reporter}}<span ng-show=\"issue.code\"> {{issue.code}}</span>]\n            </div>\n            <div class=\"blame\">\n                [{{blameLine(issue.line)}}]\n            </div>\n            <div class=\"message\">\n                {{issue.message}}\n            </div>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
         scope.update = function() {
           var issue, issuesByLine, line, lineInts, pathParts, totalCount, _i, _len, _ref;
@@ -220,6 +277,11 @@
           }
           scope.issuesByLine = issuesByLine;
           scope.totalCount = totalCount;
+          if (totalCount) {
+            scope.countClass = 'label-warning';
+          } else {
+            scope.countClass = 'label-success';
+          }
           lineInts = _.map(issuesByLine, function(issue, line) {
             return parseInt(line, 10);
           });
@@ -239,33 +301,27 @@
           return scope.data.blame[line];
         };
         return scope.$watch('data', function() {
-          console.log('update!');
           return scope.update();
         });
       }
     };
   });
 
-  angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {
-    var polling;
-    polling = false;
-    return $scope.pollInterval = $interval(function() {
-      var paths;
-      paths = $rootScope.activePaths();
-      if (paths.length > 0) {
-        return Api.poll($rootScope.targets).then(function(response) {
-          var data, path, _results;
-          _results = [];
-          for (path in response) {
-            data = response[path];
-            console.log('path:', path);
-            console.log('data:', data);
-            _results.push($rootScope.updateResults(path, data));
-          }
-          return _results;
-        });
-      }
-    }, 2000);
+  angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {});
+
+  angular.module(SERVICE_MODULE).service('Lints', function($rootScope) {
+    var Lints;
+    Lints = (function() {
+      function Lints() {}
+
+      Lints.prototype.issueCount = function(lintData) {
+        return lintData.issues.length;
+      };
+
+      return Lints;
+
+    })();
+    return new Lints();
   });
 
 }).call(this);

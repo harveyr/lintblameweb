@@ -2,9 +2,19 @@ import logging
 import datetime
 import calendar
 import json
+import os
 from werkzeug.contrib.cache import SimpleCache
 
 logger = logging.getLogger(__name__)
+
+
+def path_dir(path):
+    path = path.strip()
+    if not os.path.exists(path):
+        return None
+    if os.path.isfile(path):
+        return os.path.split(path)[0]
+    return path
 
 
 def utc_ms(date_obj):

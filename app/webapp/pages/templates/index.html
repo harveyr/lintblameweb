@@ -8,7 +8,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
 
-    <title>Fangapp</title>
+    <title>lintblame</title>
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="{{url_for('static', filename='bower_components/bootstrap/dist/css/bootstrap.css')}}">
@@ -18,39 +18,52 @@
   <body>
   {% raw %}
     <div class="container content-wrapper">
-        <div class="row">
-            <div class="col-md-2 menu-col" ng-controller="MenuCtrl">
+        <div class="row menu-row" ng-controller="MenuCtrl">
+            <div class="col-sm-1">
                 <div class="title">
-                    lintblame
+                    lint<span>blame</span>
                     <div class="pull-right" id="loading">
                     </div>
                 </div>
+            </div>
+            <div class="col-sm-5">
                 <div 
                     ng-class="{'has-success': pathExists, 'has-error': targetPathInput.length > 0 && !pathExists}"
                 >
-                    <input type="text" id="targetPathInput" class="form-control" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
-                </div>
-
-                <div class="buttons">
-                    <div ng-show="pathExists">
-                        <button class="btn btn-success"
-                            ng-click="acceptPath()"
-                        >
-                            Okay!
-                        </button>
-                    </div>
+                    <input type="text" id="target-path-input" class="form-control" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
                 </div>
             </div>
-
-            
-            <div class="col-md-10" ng-controller="ResultsCtrl">
-                <div ng-repeat="(path, pathData) in lintResults"
-                    lint-issues path="path" data="pathData"
+            <div class="col-sm-1" ng-show="pathExists && !pathAccepted">
+                <button class="btn btn-success btn-xs"
+                    ng-click="acceptPath()"
                 >
-                </div>
+                    Okay!
+                </button>
+            </div>
+            <div class="col-sm-2">
+                <small>
+                    <a ng-show="pathExists && vcs"
+                        ng-click="toggleBranchMode()"
+                        ng-class="{active: branchMode, inactive: !branchMode}"
+                    >
+                        {{branch}}
+                    </a>
+                    
+                </small>
+            </div>
+            <div class="col-sm-2 dim" ng-show="lastRefresh">
+                <small>
+                    Updated {{lastRefresh}}
+                </small>
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-md-12" ng-controller="ResultsCtrl">
+                <div ng-repeat="path in sortedPaths"
+                    lint-issues path="path" data="lintResults[path]"
+                ></div>
+            </div>
+        </div>
     </div> <!-- /container -->
 
 

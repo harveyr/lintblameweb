@@ -7,11 +7,14 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', () ->
         template: """
             <div class="lint-issues">
                 <div>
-                    <span class="label label-warning">{{totalCount}}</span>
+                    <span class="label {{countClass}}">{{totalCount}}</span>
                         &nbsp;
                     <span class="dim">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>                    
                 </div>
-                <div ng-repeat="line in sortedLines" class="issue">
+                <div ng-repeat="line in sortedLines" class="line-wrapper">
+                    <code class="code">
+                        {{data.lines[line]}}
+                    </code>
                     <div ng-repeat="issue in issuesByLine[line]" class="issue">
                         <div class="line">
                             {{issue.line}}<span ng-show="issue.column">:{{issue.column}}</span>
@@ -45,6 +48,11 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', () ->
                 scope.issuesByLine = issuesByLine
                 scope.totalCount = totalCount
 
+                if totalCount
+                    scope.countClass = 'label-warning'
+                else
+                    scope.countClass = 'label-success'
+
                 lineInts = _.map issuesByLine, (issue, line) ->
                     parseInt(line, 10)
                 scope.sortedLines = lineInts.sort (a, b) ->
@@ -64,5 +72,4 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', () ->
                 return scope.data.blame[line]
 
             scope.$watch 'data', ->
-                console.log 'update!'
                 scope.update()

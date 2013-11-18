@@ -1,12 +1,25 @@
+$smallFontSize: 11px;
+$orange: #f59120;
+$dim: darken(#fff, 30%);
+$xtradim: darken($dim, 15%);
+
 body {
     background-color: #26292c;
     color: darken(#fff, 5%);
 }
 
-$smallFontSize: 11px;
+a {
+    &.active {
+        color: $orange;
+    }
+
+    &.inactive {
+        color: $xtradim;
+    }
+}
 
 .dim {
-    color: darken(#fff, 30%);
+    color: $dim;
 }
 
 .text-shadow {
@@ -18,37 +31,50 @@ $smallFontSize: 11px;
 }
 
 .title {
-    font-size: 24px;
+    font-size: 20px;
+    position: relative;
+    top: -1px;
+
+    & > span {
+        color: #f9276c;
+    }
 }
 
-.menu-col {
-    border-right: 1px solid #ddd;
-    
-    & > div {
-        margin-top: 10px;
-    }
+.menu-row {
+    margin-bottom: 15px;
+}
 
-    .buttons {
-        .btn {
-            width: 100%;
-        }
-    }
+#target-path-input {
+    height: 24px;
+    font-size: 12px;
 }
 
 .lint-issues {
     @extend .text-shadow;
-    .issue {
-        & > div > div {
-            display: inline-block;
-        }
+    
+    margin-top: 5px;
+
+    .line-wrapper {
         padding-left: 30px;
+        margin: 5px 0 10px 0;
+        code {
+            min-width: 500px;
+        }
+    }
+    
+    .issue {
+        padding-left: 30px;
+        margin: 5px 0;
+        & > div {
+            display: inline-block;
+            margin-right: 5px;
+        }
     }
     .line {
-        width: 30px;
+        width: 20px;
     }
     .reporter {
         @extend .dim;
-        width: 70px;
         font-size: $smallFontSize;
     }
     .blame {
@@ -58,14 +84,15 @@ $smallFontSize: 11px;
         &.blame-me {
             color: #fb292d;
         }
-        margin-right: 10px;
     }
 }
 
-.code {
-    color: #dadbb1;
-    padding: 0 .4em;
+code, .code {
+    // color: #dadbb1;
+    color: $orange;
+    padding: 4px 4px;
     font-family: menlo, monaco, "andale mono", "courier new", fixed;
+    font-size: 12px;
     -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
     -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
     box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
