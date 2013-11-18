@@ -120,9 +120,9 @@
       replace: true,
       template: "<div class=\"lint-issues\" ng-class=\"{demoted: demotions[path]}\">\n    <div class=\"path\">\n        <span class=\"label {{countClass}}\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"dim\">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>\n\n        <div class=\"pull-right\">\n            <a ng-click=\"demote(path)\">\n                <span ng-show=\"!demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-down dim hover-bright\">\n                </span>\n                <span ng-show=\"demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-up dim hover-bright\">\n                </span>\n            </a>\n        </div>\n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!demotions[path]\">\n        <div class=\"line\">\n            {{line}}\n        </div>\n        <div class=\"detail\">\n            <code class=\"code\">\n                {{data.lines[line - 1]}}\n            </code>\n            <table>\n                <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                    <td class=\"reporter\">\n                        {{issue.reporter}}\n                        {{issue.code}}\n                    </td>\n                    <td class=\"{{blameClass(line)}}\">\n                        [{{blameLine(issue.line)}}]\n                    </td>\n                    <td>\n                        {{issue.message}}\n                    </td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
-        scope.data = scope.lintResults[scope.path];
         scope.update = function() {
           var issue, issuesByLine, line, lineInts, pathParts, totalCount, _i, _len, _ref;
+          scope.data = scope.lintResults[scope.path];
           issuesByLine = {};
           totalCount = 0;
           _ref = scope.data.issues;
@@ -169,7 +169,7 @@
           }
           return cls;
         };
-        scope.$watch('data', function() {
+        scope.$watch('lastRefresh', function() {
           return scope.update();
         });
         return scope.demote = function(path) {

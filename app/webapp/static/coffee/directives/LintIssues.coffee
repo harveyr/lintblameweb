@@ -47,9 +47,9 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
         """
         link: (scope) ->
             # pass
-            scope.data = scope.lintResults[scope.path]
 
             scope.update = ->
+                scope.data = scope.lintResults[scope.path]
                 issuesByLine = {}
                 totalCount = 0
                 for issue in scope.data.issues
@@ -92,7 +92,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                     cls += ' blame-me'
                 cls
 
-            scope.$watch 'data', ->
+            scope.$watch 'lastRefresh', ->
                 scope.update()
 
             scope.demote = (path) ->

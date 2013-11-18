@@ -92,6 +92,7 @@ def _get_results(path):
     if path.endswith('.py'):
         result['issues'] += py.pylint_issues(path)
         result['issues'] += py.pep8_issues(path)
+        result['issues'] += py.pyflakes_issues(path)
     return result
 
 @blueprint.route('/fullscan')
@@ -115,5 +116,6 @@ def poll_paths():
     for p in paths:
         mod = os.path.getmtime(p)
         if mod > since:
+            logger.info('change! {}'.format(p))
             response[p] = _get_results(p)
     return jsonify(response)

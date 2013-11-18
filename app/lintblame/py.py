@@ -5,7 +5,7 @@ import subprocess
 
 PEP8_REX = re.compile(r'\w+:(\d+):(\d+):\s(\w+)\s(.+)$', re.MULTILINE)
 PYLINT_REX = re.compile(r'^(\w):\s+(\d+),\s*(\d+):\s(.+)$', re.MULTILINE)
-
+PYFLAKES_REX = re.compile(r'\w+:(\d+):\s(.+)$', re.MULTILINE)
 
 def pylint_(path):
     """Returns pylint results."""
@@ -67,6 +67,31 @@ def pep8_issues(path):
     return results
 
 
+def pyflakes(path):
+    proc = subprocess.Popen(
+        ['pyflakes', path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    out, err = proc.communicate()
+    return out + err    
+
+
+def pyflakes_issues(path):
+    raw = pyflakes(path)
+    print('raw: {0}'.format(raw))
+    hits = PYFLAKES_REX.findall(raw)
+    results = []
+    for hit in hits:
+        results.append({
+            'line': hit[0],
+            'column': '',
+            'code': '',
+            'message': hit[1],
+            'reporter': 'Pyflakes'
+        })
+    print('results: {0}'.format(results))
+    return results
 
 # def pylint_issues(path):
 #     results = pylint(path)
