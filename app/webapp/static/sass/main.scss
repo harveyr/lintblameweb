@@ -1,11 +1,12 @@
 $smallFontSize: 11px;
 $orange: #f59120;
+$fontColor: darken(#fff, 5%);
 $dim: darken(#fff, 30%);
 $xtradim: darken($dim, 15%);
 
 body {
     background-color: #26292c;
-    color: darken(#fff, 5%);
+    color: $fontColor;
 }
 
 a {
@@ -20,6 +21,12 @@ a {
 
 .dim {
     color: $dim;
+
+    &.hover-bright {
+        &:hover {
+            color: $fontColor;
+        }
+    }
 }
 
 .text-shadow {
@@ -50,15 +57,43 @@ a {
 }
 
 .lint-issues {
+
     @extend .text-shadow;
     
     margin-top: 5px;
 
+    table {
+        margin-top: 10px;
+    }
+
+    td {
+        padding: 0 5px;
+        font-size: 12px;
+    }
+
+    .path {
+        padding: 4px 4px 6px 4px;
+        border-radius: 3px;
+        
+        &:hover {
+            background-color: rgba(0, 0, 0, .3);
+        }
+    }
+
+    &.demoted {
+        opacity: 0.3;
+    }
+
     .line-wrapper {
         padding-left: 30px;
-        margin: 5px 0 10px 0;
-        code {
-            min-width: 500px;
+        margin: 10px 0 10px 0;
+
+        .line {
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .detail {
+            display: inline-block;            
         }
     }
     
@@ -70,15 +105,10 @@ a {
             margin-right: 5px;
         }
     }
-    .line {
-        width: 20px;
-    }
     .reporter {
         @extend .dim;
-        font-size: $smallFontSize;
     }
     .blame {
-        font-size: $smallFontSize;
         color: #84bcde;
 
         &.blame-me {
@@ -90,9 +120,11 @@ a {
 code, .code {
     // color: #dadbb1;
     color: $orange;
-    padding: 4px 4px;
-    font-family: menlo, monaco, "andale mono", "courier new", fixed;
-    font-size: 12px;
+    padding: 4px 8px;
+    // font-family: menlo, monaco, "andale mono", "courier new", fixed;
+    font-family: source-code-pro, sans-serif;
+    font-weight: 300;
+    font-size: 11px;
     -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
     -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
     box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;

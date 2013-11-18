@@ -25,7 +25,7 @@ def git_path(path):
 
 
 def git_name():
-    subprocess.check_output(["git", "config", "user.name"])
+    return subprocess.check_output(["git", "config", "user.name"]).strip()
 
 
 def git_branch(path):
@@ -76,7 +76,6 @@ def git_branch_files(path):
         all_files += out.splitlines()
 
     return [os.path.join(top_dir, i) for i in filter(None, all_files)] 
-
 
 
 def blame(path):

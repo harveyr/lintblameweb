@@ -56,9 +56,6 @@ def test_path():
     }
     if response['exists']:
         response['dir'] = os.path.isdir(path)
-        
-
-        logger.info('request.args.get(branch): {0}'.format(request.args.get('branch')))
         if request.args.get('branch'):
             logger.info('in here!')
             response['targets'] = git.git_branch_files(path)
@@ -81,6 +78,7 @@ def test_path():
         if git_branch:
             response['branch'] = git_branch
             response['vcs'] = 'git'
+            response['name'] = git.git_name()
 
     return jsonify(response)
 

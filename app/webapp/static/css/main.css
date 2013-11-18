@@ -9,6 +9,8 @@ a.inactive {
 
 .dim, .lint-issues .reporter {
   color: #b3b3b3; }
+  .dim.hover-bright:hover, .lint-issues .hover-bright.reporter:hover {
+    color: #f2f2f2; }
 
 .text-shadow, .lint-issues {
   text-shadow: 1px 1px #000; }
@@ -32,32 +34,43 @@ a.inactive {
 
 .lint-issues {
   margin-top: 5px; }
+  .lint-issues table {
+    margin-top: 10px; }
+  .lint-issues td {
+    padding: 0 5px;
+    font-size: 12px; }
+  .lint-issues .path {
+    padding: 4px 4px 6px 4px;
+    border-radius: 3px; }
+    .lint-issues .path:hover {
+      background-color: rgba(0, 0, 0, 0.3); }
+  .lint-issues.demoted {
+    opacity: 0.3; }
   .lint-issues .line-wrapper {
     padding-left: 30px;
-    margin: 5px 0 10px 0; }
-    .lint-issues .line-wrapper code {
-      min-width: 500px; }
+    margin: 10px 0 10px 0; }
+    .lint-issues .line-wrapper .line {
+      display: inline-block;
+      margin-right: 5px; }
+    .lint-issues .line-wrapper .detail {
+      display: inline-block; }
   .lint-issues .issue {
     padding-left: 30px;
     margin: 5px 0; }
     .lint-issues .issue > div {
       display: inline-block;
       margin-right: 5px; }
-  .lint-issues .line {
-    width: 20px; }
-  .lint-issues .reporter {
-    font-size: 11px; }
   .lint-issues .blame {
-    font-size: 11px;
     color: #84bcde; }
     .lint-issues .blame.blame-me {
       color: #fb292d; }
 
 code, .code {
   color: #f59120;
-  padding: 4px 4px;
-  font-family: menlo, monaco, "andale mono", "courier new", fixed;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-family: source-code-pro, sans-serif;
+  font-weight: 300;
+  font-size: 11px;
   -webkit-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
   -moz-box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
   box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0px inset;
