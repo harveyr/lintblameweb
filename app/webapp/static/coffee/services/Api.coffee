@@ -40,16 +40,19 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
                 $rootScope.setLoading(false)
             deferred.promise
 
-        poll: (paths) ->
+        poll: (paths, branchMode=false) ->
             deferred = $q.defer()
+
             request = $http {
                 url: '/api/poll'
                 method: 'get'
                 params:
-                    paths: paths.join(',')
                     since: @lastUpdate
+                    paths: paths.join(',')
+                    branch: branchMode
                 cache: false
             }
+
             request.success (response) =>
                 if not _.isEmpty response
                     @lastUpdate = Date.now()

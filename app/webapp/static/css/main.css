@@ -2,6 +2,10 @@ body {
   background-color: #26292c;
   color: #f2f2f2; }
 
+a:hover, a.active:hover, a.inactive:hover {
+  color: #f2f2f2;
+  text-decoration: none;
+  cursor: pointer; }
 a.active {
   color: #f59120; }
 a.inactive {
@@ -27,6 +31,14 @@ a.inactive {
 
 .menu-row {
   margin-bottom: 15px; }
+
+.submenu-row {
+  margin-top: 10px; }
+  .submenu-row > div {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 4px;
+    border: 1px solid #555; }
 
 #target-path-input {
   height: 24px;

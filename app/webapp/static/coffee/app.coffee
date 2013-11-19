@@ -81,8 +81,7 @@ app = angular.module(APP_NAME, [
         lastRefresh += secs
         $rootScope.lastRefresh = lastRefresh
 
-        updateFavicon()
+        # updateFavicon()
 
-    $rootScope.lintPaths = ->
-        _.keys $rootScope.lintResults
-
+    $rootScope.deletePath = (path) ->
+        delete $rootScope.lintResults[path]

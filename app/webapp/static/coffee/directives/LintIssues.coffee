@@ -49,6 +49,9 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
             # pass
 
             scope.update = ->
+                if not _.has scope.lintResults, scope.path
+                    return
+
                 scope.data = scope.lintResults[scope.path]
                 issuesByLine = {}
                 totalCount = 0

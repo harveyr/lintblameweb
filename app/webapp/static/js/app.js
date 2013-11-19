@@ -71,16 +71,20 @@
         return deferred.promise;
       };
 
-      Api.prototype.poll = function(paths) {
+      Api.prototype.poll = function(paths, branchMode) {
         var deferred, request,
           _this = this;
+        if (branchMode == null) {
+          branchMode = false;
+        }
         deferred = $q.defer();
         request = $http({
           url: '/api/poll',
           method: 'get',
           params: {
+            since: this.lastUpdate,
             paths: paths.join(','),
-            since: this.lastUpdate
+            branch: branchMode
           },
           cache: false
         });
@@ -122,6 +126,9 @@
       link: function(scope) {
         scope.update = function() {
           var issue, issuesByLine, line, lineInts, pathParts, totalCount, _i, _len, _ref;
+          if (!_.has(scope.lintResults, scope.path)) {
+            return;
+          }
           scope.data = scope.lintResults[scope.path];
           issuesByLine = {};
           totalCount = 0;
@@ -285,20 +292,22 @@
         lastRefresh += '0';
       }
       lastRefresh += secs;
-      $rootScope.lastRefresh = lastRefresh;
-      return updateFavicon();
+      return $rootScope.lastRefresh = lastRefresh;
     };
-    return $rootScope.lintPaths = function() {
-      return _.keys($rootScope.lintResults);
+    return $rootScope.deletePath = function(path) {
+      return delete $rootScope.lintResults[path];
     };
   });
 
   angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api) {
-    var testPath, _targetPathChange, _testPath;
+    var devPath, stopPolling, targetPathChange, testPath, updatePaths;
     $rootScope.branchMode = false;
     $scope.showSubmitBtn = true;
+    $scope.isPolling = false;
     $scope.pollCount = 0;
-    _testPath = function(andAccept) {
+    $scope.acceptedPath = null;
+    $scope.pendingPaths = [];
+    testPath = function(andAccept) {
       var deferred, path;
       if (andAccept == null) {
         andAccept = false;
@@ -320,57 +329,89 @@
       });
       return deferred.promise;
     };
-    $scope.poll = function() {
+    updatePaths = function() {
+      if (!$scope.acceptedPath) {
+        return;
+      }
+      return Api.testPath($scope.acceptedPath, $rootScope.branchMode).then(function(response) {
+        var newPaths;
+        newPaths = _.without(response.targets, $rootScope.activePaths());
+        console.log('newPaths:', newPaths, $scope.pendingPaths);
+        $scope.pendingPaths = newPaths;
+        if ($scope.pendingPaths) {
+          return console.log('$scope.pendingPaths:', $scope.pendingPaths);
+        }
+      });
+    };
+    stopPolling = function() {
       if ($scope.pollInterval) {
         clearInterval($scope.pollInterval);
       }
-      return $scope.pollInterval = setInterval(function() {
+      return $scope.isPolling = false;
+    };
+    $scope.poll = function() {
+      stopPolling();
+      $scope.pollInterval = setInterval(function() {
         var paths;
         paths = $rootScope.activePaths();
         if (paths.length > 0) {
-          if ($scope.pollCount > 0 && $scope.pollCount % 10 === 0) {
-            _testPath(true);
-          } else {
-            Api.poll($rootScope.lintPaths()).then(function(response) {
-              if (!_.isEmpty(response)) {
-                return $rootScope.updateResults(response);
+          Api.poll(paths, $rootScope.branchMode).then(function(response) {
+            var p, _i, _len, _ref, _results;
+            if (!_.isEmpty(response)) {
+              $rootScope.updateResults(response.changed);
+              if (_.has(response, 'delete')) {
+                _ref = response["delete"];
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  p = _ref[_i];
+                  _results.push($rootScope.deletePath(p));
+                }
+                return _results;
               }
-            });
-          }
+            }
+          });
           return $scope.pollCount += 1;
         }
       }, 2000);
+      return $scope.isPolling = true;
+    };
+    $scope.togglePolling = function() {
+      if ($scope.isPolling) {
+        return stopPolling();
+      } else {
+        return $scope.poll();
+      }
     };
     $scope.acceptPath = function() {
       if (!$scope.targets || $scope.targets.length === 0) {
+        console.log('here');
         return;
       }
       $scope.showSubmitBtn = false;
+      $scope.acceptedPath = $scope.targetPathInput;
       return Api.fullScan($scope.targets).then(function(response) {
         $rootScope.updateResults(response);
         return $scope.poll();
       });
     };
-    _targetPathChange = function() {
+    targetPathChange = function() {
       var path;
+      stopPolling();
+      $rootScope.branchMode = false;
       path = $scope.targetPathInput;
       if (path) {
         $scope.showSubmitBtn = true;
-        return _testPath();
+        return testPath();
       }
     };
-    $scope.targetPathChange = _.throttle(_targetPathChange, 1000);
+    $scope.targetPathChange = _.throttle(targetPathChange, 1000);
     $scope.toggleBranchMode = function() {
       $rootScope.branchMode = !$rootScope.branchMode;
-      return _testPath(true);
+      return testPath(true);
     };
-    testPath = '~/dev/ua/airship/airship/apps/messages';
-    $scope.targetPathInput = testPath;
-    return _testPath(true).then(function() {
-      if ($scope.branch) {
-        return $scope.toggleBranchMode();
-      }
-    });
+    devPath = '~/dev/ua/airship/airship/apps/messages';
+    $scope.targetPathInput = devPath;
+    return $scope.toggleBranchMode();
   });
 
   angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {

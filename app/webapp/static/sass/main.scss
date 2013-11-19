@@ -10,6 +10,11 @@ body {
 }
 
 a {
+    &:hover, &.active:hover, &.inactive:hover {
+        color: $fontColor;
+        text-decoration: none;
+        cursor: pointer;
+    }
     &.active {
         color: $orange;
     }
@@ -49,6 +54,17 @@ a {
 
 .menu-row {
     margin-bottom: 15px;
+}
+
+.submenu-row {
+    margin-top: 10px;
+
+    & > div {
+        display: inline-block;
+        margin-right: 10px;
+        padding: 4px;
+        border: 1px solid #555;
+    }
 }
 
 #target-path-input {

@@ -45,8 +45,8 @@
                         <div class="pull-right" id="loading"></div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-sm-2" ng-show="pathExists && vcs">
+                <div class="submenu-row">
+                    <div ng-show="pathExists && vcs">
                         <small>
                             <a 
                                 ng-click="toggleBranchMode()"
@@ -55,6 +55,17 @@
                                 {{branch}}
                             </a>
                         </small>
+                    </div>
+                    <div ng-show="pollCount">
+                        <a ng-click="togglePolling()"
+                            ng-class="{active: isPolling, inactive: !isPolling}"
+                        >
+                            <span class="glyphicon"
+                                ng-class="{'glyphicon-play': isPolling, 'glyphicon-pause': !isPolling}"
+                            ></span>
+                            Polling
+                            <span ng-show="!isPolling"> Paused</span>
+                        </a>
                     </div>
                     <div class="pull-right dim">
                         <small ng-show="lastRefresh">
@@ -65,7 +76,12 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-12" ng-controller="ResultsCtrl">
+            <div class="col-sm-2">
+                <p class="dim">
+                    <strong>Saved</strong>
+                </p>
+            </div>
+            <div class="col-sm-10" ng-controller="ResultsCtrl">
                 <div ng-repeat="path in sortedPaths" lint-issues></div>
             </div>
         </div>

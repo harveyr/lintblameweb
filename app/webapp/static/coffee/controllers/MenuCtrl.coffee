@@ -1,9 +1,13 @@
 angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api) ->
     $rootScope.branchMode = false
     $scope.showSubmitBtn = true
+    $scope.isPolling = false
     $scope.pollCount = 0
+    $scope.acceptedPath = null
 
-    _testPath = (andAccept=false) ->
+    $scope.pendingPaths = []
+
+    testPath = (andAccept=false) ->
         deferred = $q.defer()
         path = $scope.targetPathInput
         Api.testPath(path, $rootScope.branchMode).then (response) ->
@@ -20,48 +24,72 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api) ->
             deferred.resolve()
         deferred.promise
 
-    $scope.poll = ->
+    # Not using this currently
+    updatePaths = ->
+        if not $scope.acceptedPath
+            return
+
+        Api.testPath($scope.acceptedPath, $rootScope.branchMode).then (response) ->
+            newPaths = _.without response.targets, $rootScope.activePaths()
+            console.log 'newPaths:', newPaths, $scope.pendingPaths
+            $scope.pendingPaths = newPaths
+            if $scope.pendingPaths
+                console.log '$scope.pendingPaths:', $scope.pendingPaths
+
+    stopPolling = ->
         if $scope.pollInterval
             clearInterval($scope.pollInterval)
+        $scope.isPolling = false
+
+    $scope.poll = ->
+        stopPolling()
 
         $scope.pollInterval = setInterval ->
             paths = $rootScope.activePaths()
             if paths.length > 0
-                if $scope.pollCount > 0 and $scope.pollCount % 10 == 0
-                    # Update everything
-                    _testPath(true)
-                else           
-                    Api.poll($rootScope.lintPaths()).then (response) ->
-                        if not _.isEmpty response
-                            $rootScope.updateResults response
+                Api.poll(paths, $rootScope.branchMode).then (response) ->
+                    if not _.isEmpty response
+                        $rootScope.updateResults response.changed
+                        if _.has response, 'delete'
+                            for p in response.delete
+                                $rootScope.deletePath p
                 $scope.pollCount += 1
         , 2000
+        $scope.isPolling = true
+
+    $scope.togglePolling = ->
+        if $scope.isPolling
+            stopPolling()
+        else
+            $scope.poll()
 
     $scope.acceptPath = ->
         if !$scope.targets or $scope.targets.length == 0
+            console.log 'here'
             return
         $scope.showSubmitBtn = false
+        $scope.acceptedPath = $scope.targetPathInput
         Api.fullScan($scope.targets).then (response) ->
             $rootScope.updateResults response
             $scope.poll()
 
-    _targetPathChange = ->
+    targetPathChange = ->
+        stopPolling()
+        $rootScope.branchMode = false
         path = $scope.targetPathInput
         if path
             $scope.showSubmitBtn = true
-            _testPath()
-    $scope.targetPathChange = _.throttle(_targetPathChange, 1000)
+            testPath()
+    $scope.targetPathChange = _.throttle(targetPathChange, 1000)
 
     $scope.toggleBranchMode = ->
         $rootScope.branchMode = !$rootScope.branchMode
-        _testPath(true)
+        testPath(true)
 
 
     # Testing:
     # $scope.targetPathInput = '/Users/harveyrogers/dev/lintblameweb/app/webapp/endpoints/routes.py'
     # $scope.targetPathInput = '/Users/harveyrogers/dev/lintblame/lintblame.py'
-    testPath = '~/dev/ua/airship/airship/apps/messages'
-    $scope.targetPathInput = testPath
-    _testPath(true).then ->
-        if $scope.branch
-            $scope.toggleBranchMode()
+    devPath = '~/dev/ua/airship/airship/apps/messages'
+    $scope.targetPathInput = devPath
+    $scope.toggleBranchMode()

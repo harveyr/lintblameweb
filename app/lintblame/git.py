@@ -62,20 +62,21 @@ def git_branch_files(path):
     )
     out, err = proc.communicate()
 
-    all_files = out.splitlines()
+    all_files = set(out.splitlines())
 
     branch = git_branch(path)
     if branch != 'master':
         proc = subprocess.Popen(
-            ["git", "diff", "--name-only"],
+            ["git", "diff", "--name-only", "master..HEAD"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=path
         )
         out, err = proc.communicate()
-        all_files += out.splitlines()
+        all_files.update(out.splitlines())
 
-    return [os.path.join(top_dir, i) for i in filter(None, all_files)] 
+    print('all_files: {0}'.format(all_files))
+    return [os.path.join(top_dir, i) for i in filter(None, all_files)]
 
 
 def blame(path):

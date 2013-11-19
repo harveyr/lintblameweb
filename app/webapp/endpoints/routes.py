@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint('endpoints', __name__)
 
 
-def valid_path(path):
+def valid_target(path):
     name, ext = os.path.splitext(path)
     return ext in ['.py', '.go']
 
@@ -39,8 +39,11 @@ def paths_or_400():
     joined_paths = request.args.get('paths')
     if not joined_paths:
         abort(400)
-    return joined_paths.split(',')
-
+    split_paths = joined_paths.split(',')
+    for i, p in enumerate(split_paths):
+        if p[0] == '~':
+            split_paths[i] = os.path.expanduser(p)
+    return split_paths
 
 @blueprint.route('/dumb')
 def dumb_route():
@@ -57,19 +60,17 @@ def test_path():
     if response['exists']:
         response['dir'] = os.path.isdir(path)
         if request.args.get('branch'):
-            logger.info('in here!')
             response['targets'] = git.git_branch_files(path)
-            logger.info('response[targets]: {0}'.format(response['targets']))
 
         elif response['dir']:
             contents = [os.path.join(path, i) for i in os.listdir(path)
                         if not i.startswith('.')]
-            targets = [i for i in contents if valid_path(i)]
+            targets = [i for i in contents if valid_target(i)]
             response['contents'] = contents
             response['targets'] = targets
 
         else:
-            if valid_path(path):
+            if valid_target(path):
                 response['targets'] = [path]
             else:
                 response['targets'] = []
@@ -109,13 +110,24 @@ def fullscan():
 
 @blueprint.route('/poll')
 def poll_paths():
-    paths = paths_or_400()
+    request_paths = paths_or_400()
+
+    branch_mode = request.args.get('branch')
+    if branch_mode:
+        poll_paths = git.git_branch_files(request_paths[0])
+    else:
+        poll_paths = request_paths
+
     since = float(int(request.args.get('since')) / 1000)
     # since_date = datetime.datetime.fromtimestamp(since / 1000)
-    response = {}
-    for p in paths:
+    response = {
+        'changed': {}
+    }
+    for p in poll_paths:
         mod = os.path.getmtime(p)
         if mod > since:
-            logger.info('CHANGE!')
-            response[p] = _get_results(p)
+            response['changed'][p] = _get_results(p)
+
+    if branch_mode:
+        response['delete'] = [i for i in request_paths if i not in poll_paths]
     return jsonify(response)
