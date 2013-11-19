@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
+    <link id="favicon" rel="shortcut icon" type="image/png" href="../../docs-assets/ico/favicon.png">
 
     <title>lintblame</title>
 
@@ -19,44 +19,49 @@
   {% raw %}
     <div class="container content-wrapper">
         <div class="row menu-row" ng-controller="MenuCtrl">
-            <div class="col-sm-1">
+            <div class="col-sm-2 col-md-1">
                 <div class="title">
                     lint<span>blame</span>
                 </div>
             </div>
-            <div class="col-sm-5">
-                <div 
-                    ng-class="{'has-success': pathExists, 'has-error': targetPathInput.length > 0 && !pathExists}"
-                >
-                    <input type="text" id="target-path-input" class="form-control" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
+            <div class="col-sm-10">
+                <div class="row">
+                    <div class="col-sm-11">
+                        <div 
+                            ng-class="{'has-success': pathExists, 'has-error': targetPathInput.length > 0 && !pathExists}"
+                        >
+                            <input type="text" id="target-path-input" class="form-control code" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
+                        </div>
+                    </div>
+                    <div class="col-sm-1">
+                        <button class="btn btn-success btn-xs"
+                            ng-show="showSubmitBtn"
+                            ng-click="acceptPath()"
+                        >
+                            Okay!
+                        </button>
+                    </div>
+                    <div class="pull-right">
+                        <div class="pull-right" id="loading"></div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-sm-1">
-                <button class="btn btn-success btn-xs"
-                    ng-show="showSubmitBtn"
-                    ng-click="acceptPath()"
-                >
-                    Okay!
-                </button>
-            </div>
-            <div class="col-sm-2">
-                <small>
-                    <a ng-show="pathExists && vcs"
-                        ng-click="toggleBranchMode()"
-                        ng-class="{active: branchMode, inactive: !branchMode}"
-                    >
-                        {{branch}}
-                    </a>
-                    
-                </small>
-            </div>
-            <div class="col-sm-2 dim">
-                <small ng-show="lastRefresh">
-                    Updated {{lastRefresh}}
-                </small>
-                <div class="pull-right" id="loading"></div>
-            </div>
-            <div class="col-sm-1">
+                <div class="row">
+                    <div class="col-sm-2" ng-show="pathExists && vcs">
+                        <small>
+                            <a 
+                                ng-click="toggleBranchMode()"
+                                ng-class="{active: branchMode, inactive: !branchMode}"
+                            >
+                                {{branch}}
+                            </a>
+                        </small>
+                    </div>
+                    <div class="pull-right dim">
+                        <small ng-show="lastRefresh">
+                            Updated {{lastRefresh}}
+                        </small>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -72,7 +77,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="{{url_for('static', filename='lib/jquery.js')}}"></script>
     <script src="{{url_for('static', filename='bower_components/bootstrap/dist/js/bootstrap.js')}}"></script>
     <script src="{{url_for('static', filename='bower_components/less/dist/less-1.5.0.js')}}"></script>
     <script src="{{url_for('static', filename='bower_components/angular/angular.js')}}"></script>

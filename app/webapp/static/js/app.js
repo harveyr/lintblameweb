@@ -211,7 +211,7 @@
   });
 
   app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api, Lints) {
-    var spinOpts;
+    var spinOpts, updateFavicon;
     $rootScope.appName = "lintblame";
     $rootScope.lintResults = {};
     spinOpts = {
@@ -229,8 +229,8 @@
       hwaccel: false,
       className: 'spinner',
       zIndex: 2e9,
-      top: '5px',
-      left: '-20px'
+      top: '0',
+      left: '0'
     };
     $rootScope.loadingSpinner = new Spinner(spinOpts);
     $rootScope.isSpinning = false;
@@ -251,7 +251,18 @@
       }
       return _.keys($rootScope.lintResults);
     };
-    return $rootScope.updateResults = function(pathsAndData) {
+    updateFavicon = function() {
+      var count, data, path, _ref, _results;
+      count = 0;
+      _ref = $rootScope.lintResults;
+      _results = [];
+      for (path in _ref) {
+        data = _ref[path];
+        _results.push(count += Lints.issueCount(data));
+      }
+      return _results;
+    };
+    $rootScope.updateResults = function(pathsAndData) {
       var data, lastRefresh, mins, now, path, paths, secs;
       for (path in pathsAndData) {
         data = pathsAndData[path];
@@ -274,7 +285,11 @@
         lastRefresh += '0';
       }
       lastRefresh += secs;
-      return $rootScope.lastRefresh = lastRefresh;
+      $rootScope.lastRefresh = lastRefresh;
+      return updateFavicon();
+    };
+    return $rootScope.lintPaths = function() {
+      return _.keys($rootScope.lintResults);
     };
   });
 
@@ -282,32 +297,7 @@
     var testPath, _targetPathChange, _testPath;
     $rootScope.branchMode = false;
     $scope.showSubmitBtn = true;
-    $scope.poll = function() {
-      if ($scope.pollInterval) {
-        clearInterval($scope.pollInterval);
-      }
-      return $scope.pollInterval = setInterval(function() {
-        var paths;
-        paths = $rootScope.activePaths();
-        if (paths.length > 0) {
-          return Api.poll($rootScope.targets).then(function(response) {
-            if (!_.isEmpty(response)) {
-              return $rootScope.updateResults(response);
-            }
-          });
-        }
-      }, 2000);
-    };
-    $scope.acceptPath = function() {
-      if (!$rootScope.targets || $rootScope.targets.length === 0) {
-        return;
-      }
-      $scope.showSubmitBtn = false;
-      return Api.fullScan($rootScope.targets).then(function(response) {
-        $rootScope.updateResults(response);
-        return $scope.poll();
-      });
-    };
+    $scope.pollCount = 0;
     _testPath = function(andAccept) {
       var deferred, path;
       if (andAccept == null) {
@@ -317,8 +307,7 @@
       path = $scope.targetPathInput;
       Api.testPath(path, $rootScope.branchMode).then(function(response) {
         $scope.pathExists = response.exists;
-        $rootScope.targets = response.targets;
-        console.log('response.vcs:', response.vcs);
+        $scope.targets = response.targets;
         if (!_.isUndefined(response.vcs)) {
           $scope.vcs = response.vcs;
           $scope.branch = response.branch;
@@ -330,6 +319,37 @@
         return deferred.resolve();
       });
       return deferred.promise;
+    };
+    $scope.poll = function() {
+      if ($scope.pollInterval) {
+        clearInterval($scope.pollInterval);
+      }
+      return $scope.pollInterval = setInterval(function() {
+        var paths;
+        paths = $rootScope.activePaths();
+        if (paths.length > 0) {
+          if ($scope.pollCount > 0 && $scope.pollCount % 10 === 0) {
+            _testPath(true);
+          } else {
+            Api.poll($rootScope.lintPaths()).then(function(response) {
+              if (!_.isEmpty(response)) {
+                return $rootScope.updateResults(response);
+              }
+            });
+          }
+          return $scope.pollCount += 1;
+        }
+      }, 2000);
+    };
+    $scope.acceptPath = function() {
+      if (!$scope.targets || $scope.targets.length === 0) {
+        return;
+      }
+      $scope.showSubmitBtn = false;
+      return Api.fullScan($scope.targets).then(function(response) {
+        $rootScope.updateResults(response);
+        return $scope.poll();
+      });
     };
     _targetPathChange = function() {
       var path;
@@ -346,7 +366,11 @@
     };
     testPath = '~/dev/ua/airship/airship/apps/messages';
     $scope.targetPathInput = testPath;
-    return _testPath(true);
+    return _testPath(true).then(function() {
+      if ($scope.branch) {
+        return $scope.toggleBranchMode();
+      }
+    });
   });
 
   angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {

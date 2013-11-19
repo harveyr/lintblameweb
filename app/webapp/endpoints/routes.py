@@ -116,6 +116,6 @@ def poll_paths():
     for p in paths:
         mod = os.path.getmtime(p)
         if mod > since:
-            logger.info('change! {}'.format(p))
+            logger.info('CHANGE!')
             response[p] = _get_results(p)
     return jsonify(response)
