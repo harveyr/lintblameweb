@@ -1,6 +1,5 @@
 import logging
-from flask import (render_template, request, flash, redirect, url_for, session,
-    Blueprint)
+from flask import render_template, Blueprint
 
 logger = logging.getLogger(__name__)
 

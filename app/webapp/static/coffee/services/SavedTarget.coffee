@@ -2,7 +2,7 @@ angular.module(SERVICE_MODULE).service 'SavedTarget', () ->
     class SavedTarget
         constructor: (properties) ->
             defaults =
-                branchMode: false
+            branchMode: false
 
             properties = _.extend defaults, properties
             _.each properties, (val, key) =>

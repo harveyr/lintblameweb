@@ -100,6 +100,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
         $rootScope.branchMode = save.branchMode
         $scope.targetPathInput = path
         testPath(true)
+        $scope.showSaveBtn = false
 
     $scope.$watch 'loadedSavePath', ->
         loadSave $rootScope.loadedSavePath

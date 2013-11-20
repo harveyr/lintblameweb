@@ -599,7 +599,8 @@
       save = LocalStorage.getSavedLintTarget(path);
       $rootScope.branchMode = save.branchMode;
       $scope.targetPathInput = path;
-      return testPath(true);
+      testPath(true);
+      return $scope.showSaveBtn = false;
     };
     return $scope.$watch('loadedSavePath', function() {
       return loadSave($rootScope.loadedSavePath);

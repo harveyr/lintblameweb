@@ -111,7 +111,8 @@ def poll_paths():
 
     branch_mode = request.args.get('branch')
     if branch_mode:
-        poll_paths = git.git_branch_files(request_paths[0])
+        poll_paths = [p for p in git.git_branch_files(request_paths[0])
+                      if valid_target(p)]
     else:
         poll_paths = request_paths
 
