@@ -7,4 +7,6 @@ This is a webapp that watches your code, linting and blaming all the livelong da
 
 It currently supports only Python, using the pep8, pyflakes, and pylint utilities. I plan to steadily add support for more syntaxes.
 
+Disclaimer: I'm not a UI/design guy.
+
 ![Screenshot](https://raw.github.com/harveyr/lintblameweb/master/screenshot.png)
