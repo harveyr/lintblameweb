@@ -1,4 +1,4 @@
-lintblameweb
+thunderbox
 ============
 
 This is a webapp that watches your code, linting and blaming all the livelong day. The results show what's ugly and who made it so.
