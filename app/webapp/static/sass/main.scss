@@ -3,9 +3,10 @@ $orange: #f59120;
 $fontColor: darken(#fff, 5%);
 $dim: darken(#fff, 30%);
 $xtradim: darken($dim, 15%);
+$bgColor: #26292c;
 
 body {
-    background-color: #26292c;
+    background-color: $bgColor;
     color: $fontColor;
 }
 
@@ -22,6 +23,10 @@ a {
     &.inactive {
         color: $xtradim;
     }
+}
+
+.tiny {
+    font-size: 9px;
 }
 
 .dim {
@@ -58,7 +63,7 @@ a {
 
 .submenu-row {
     margin-top: 10px;
-
+    font-size: $smallFontSize;
     & > div {
         display: inline-block;
         margin-right: 10px;
@@ -70,6 +75,23 @@ a {
 #target-path-input {
     height: 24px;
     font-size: 12px;
+}
+
+.saves-wrapper {
+    // background-color: darken($bgColor, 3%);
+    // padding: 10px;
+}
+
+.saved-target {
+    background-color: darken($bgColor, 3%);
+    padding: 8px;
+    border-radius: 4px;
+    input {
+        height: 24px;
+        font-size: 12px;
+        border: 1px solid #444;
+        color: $dim;
+    }
 }
 
 .lint-issues {

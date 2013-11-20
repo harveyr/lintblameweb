@@ -1,10 +1,12 @@
 app = angular.module(APP_NAME, [
     "#{APP_NAME}.services"
     "#{APP_NAME}.directives"
-]).run ($rootScope, Api, Lints) ->
+]).run ($rootScope, Api, Lints, LocalStorage) ->
     $rootScope.appName = "lintblame"
 
     $rootScope.lintResults = {}
+
+    LocalStorage.initIfNecessary()
 
     spinOpts =
         lines: 10, # The number of lines to draw
@@ -85,3 +87,6 @@ app = angular.module(APP_NAME, [
 
     $rootScope.deletePath = (path) ->
         delete $rootScope.lintResults[path]
+
+    $rootScope.loadSavePath = (path) ->
+        $rootScope.loadedSavePath = path

@@ -11,6 +11,9 @@ a.active {
 a.inactive {
   color: #8c8c8c; }
 
+.tiny {
+  font-size: 9px; }
+
 .dim, .lint-issues .reporter {
   color: #b3b3b3; }
   .dim.hover-bright:hover, .lint-issues .hover-bright.reporter:hover {
@@ -33,7 +36,8 @@ a.inactive {
   margin-bottom: 15px; }
 
 .submenu-row {
-  margin-top: 10px; }
+  margin-top: 10px;
+  font-size: 11px; }
   .submenu-row > div {
     display: inline-block;
     margin-right: 10px;
@@ -43,6 +47,16 @@ a.inactive {
 #target-path-input {
   height: 24px;
   font-size: 12px; }
+
+.saved-target {
+  background-color: #1f2124;
+  padding: 8px;
+  border-radius: 4px; }
+  .saved-target input {
+    height: 24px;
+    font-size: 12px;
+    border: 1px solid #444;
+    color: #b3b3b3; }
 
 .lint-issues {
   margin-top: 5px; }

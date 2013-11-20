@@ -1,4 +1,4 @@
-angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api) ->
+angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, LocalStorage, SavedTarget) ->
     $rootScope.branchMode = false
     $scope.showSubmitBtn = true
     $scope.isPolling = false
@@ -86,10 +86,27 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api) ->
         $rootScope.branchMode = !$rootScope.branchMode
         testPath(true)
 
+    loadSave = (path) ->
+        if not path
+            return
+
+        save = LocalStorage.getSavedLintTarget path
+        $rootScope.branchMode = save.branchMode
+        $scope.targetPathInput = path
+        testPath(true)
+
+    $scope.$watch 'loadedSavePath', ->
+        loadSave $rootScope.loadedSavePath
+
 
     # Testing:
-    # $scope.targetPathInput = '/Users/harveyrogers/dev/lintblameweb/app/webapp/endpoints/routes.py'
-    # $scope.targetPathInput = '/Users/harveyrogers/dev/lintblame/lintblame.py'
-    devPath = '~/dev/ua/airship/airship/apps/messages'
-    $scope.targetPathInput = devPath
-    $scope.toggleBranchMode()
+    # console.log 'LocalStorage.get():', LocalStorage.get()
+    # devPath = '~/dev/ua/airship/airship/apps/messages'
+
+    # saved = new SavedTarget({path: devPath, branchMode: true})
+    # LocalStorage.saveLintTarget saved
+
+    # $scope.saves = LocalStorage.savedLintTargets()
+
+    # $scope.targetPathInput = devPath
+    # $scope.toggleBranchMode()

@@ -47,14 +47,12 @@
                 </div>
                 <div class="submenu-row">
                     <div ng-show="pathExists && vcs">
-                        <small>
-                            <a 
-                                ng-click="toggleBranchMode()"
-                                ng-class="{active: branchMode, inactive: !branchMode}"
-                            >
-                                {{branch}}
-                            </a>
-                        </small>
+                        <a 
+                            ng-click="toggleBranchMode()"
+                            ng-class="{active: branchMode, inactive: !branchMode}"
+                        >
+                            {{branch}}
+                        </a>
                     </div>
                     <div ng-show="pollCount">
                         <a ng-click="togglePolling()"
@@ -63,23 +61,23 @@
                             <span class="glyphicon"
                                 ng-class="{'glyphicon-play': isPolling, 'glyphicon-pause': !isPolling}"
                             ></span>
+                            <span ng-show="!isPolling">Not</span>
                             Polling
-                            <span ng-show="!isPolling"> Paused</span>
                         </a>
                     </div>
                     <div class="pull-right dim">
-                        <small ng-show="lastRefresh">
+                        <span ng-show="lastRefresh">
                             Updated {{lastRefresh}}
-                        </small>
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-2">
-                <p class="dim">
-                    <strong>Saved</strong>
-                </p>
+            <div class="col-sm-2" ng-controller="SavesCtrl">
+                <div class="saves-wrapper">
+                    <div ng-repeat="(path, data) in saves" saved-target></div>
+                </div>
             </div>
             <div class="col-sm-10" ng-controller="ResultsCtrl">
                 <div ng-repeat="path in sortedPaths" lint-issues></div>

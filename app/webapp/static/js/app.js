@@ -118,6 +118,134 @@
     return new Lints();
   });
 
+  angular.module(SERVICE_MODULE).service('LocalStorage', function(SavedTarget) {
+    var LocalStorage;
+    LocalStorage = (function() {
+      function LocalStorage() {}
+
+      LocalStorage.prototype.STORAGE_KEY = 'lintblame';
+
+      LocalStorage.prototype.SAVED_TARGETS_KEY = 'saves';
+
+      LocalStorage.prototype.listeners = [];
+
+      LocalStorage.prototype.set = function(val) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(val));
+        return _.each(this.listeners, function(listener) {
+          return listener();
+        });
+      };
+
+      LocalStorage.prototype.setAttr = function(key, val) {
+        var all;
+        all = this.get();
+        all[key] = val;
+        return this.set(all);
+      };
+
+      LocalStorage.prototype.get = function(key) {
+        var all;
+        if (key == null) {
+          key = null;
+        }
+        all = JSON.parse(localStorage.getItem(this.STORAGE_KEY));
+        if (!key) {
+          return all;
+        }
+        return all[key];
+      };
+
+      LocalStorage.prototype.savedLintTargets = function() {
+        return this.get(this.SAVED_TARGETS_KEY);
+      };
+
+      LocalStorage.prototype.saveLintTarget = function(saveTarget) {
+        var currentSaved, path;
+        currentSaved = this.get(this.SAVED_TARGETS_KEY);
+        path = saveTarget.path;
+        if (!path) {
+          throw "Bad path: " + path;
+        }
+        saveTarget.setUpdated();
+        currentSaved[path] = saveTarget.toObj();
+        return this.setAttr(this.SAVED_TARGETS_KEY, currentSaved);
+      };
+
+      LocalStorage.prototype.getSavedLintTarget = function(path) {
+        var saved, target;
+        saved = this.savedLintTargets();
+        if (_.has(saved, path)) {
+          target = new SavedTarget(saved[path]);
+          return target;
+        }
+        throw "" + path + " is not saved!";
+      };
+
+      LocalStorage.prototype.setSaveName = function(path, name) {
+        var target;
+        target = this.getSavedLintTarget(path);
+        target.saveName = name;
+        return this.saveLintTarget(target);
+      };
+
+      LocalStorage.prototype.resetAppStorage = function() {
+        var defaultState;
+        console.log('resetting app storage');
+        defaultState = {};
+        defaultState[this.SAVED_TARGETS_KEY] = {};
+        return this.set(defaultState);
+      };
+
+      LocalStorage.prototype.initIfNecessary = function() {
+        if (!this.get()) {
+          return this.resetAppStorage();
+        }
+      };
+
+      LocalStorage.prototype.addListener = function(listener) {
+        return this.listeners.push(listener);
+      };
+
+      return LocalStorage;
+
+    })();
+    return new LocalStorage();
+  });
+
+  angular.module(SERVICE_MODULE).service('SavedTarget', function() {
+    var SavedTarget;
+    SavedTarget = (function() {
+      function SavedTarget(properties) {
+        var defaults,
+          _this = this;
+        defaults = {
+          branchMode: false
+        };
+        properties = _.extend(defaults, properties);
+        _.each(properties, function(val, key) {
+          return _this[key] = val;
+        });
+      }
+
+      SavedTarget.prototype.toObj = function() {
+        return {
+          path: this.path,
+          branchMode: this.branchMode,
+          updated: this.updated,
+          saveName: this.saveName
+        };
+      };
+
+      SavedTarget.prototype.setUpdated = function() {
+        return this.updated = Date.now();
+      };
+
+      return SavedTarget;
+
+    })();
+    return SavedTarget;
+  });
+
   angular.module(DIRECTIVE_MODULE).directive('lintIssues', function($rootScope) {
     var directive;
     return directive = {
@@ -186,6 +314,33 @@
     };
   });
 
+  angular.module(DIRECTIVE_MODULE).directive('savedTarget', function($rootScope, LocalStorage) {
+    var directive;
+    return directive = {
+      replace: true,
+      template: "<div class=\"saved-target\" ng-click=\"click()\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"dim\">\n        <span class=\"tiny\">\n            {{m.path}}\n        </span>\n    </div>\n    <div>\n        <small>\n            <a ng-click=\"loadSavePath(path)\">Load</a>\n        </small>\n    </div>\n</div>",
+      link: function(scope) {
+        var frag;
+        scope.m = {
+          path: scope.path
+        };
+        if (scope.path.length > 20) {
+          frag = scope.path.substr(17);
+          scope.m.path = "..." + frag;
+        }
+        if (_.has(scope.data, 'saveName')) {
+          scope.m.saveName = scope.data.saveName;
+        }
+        scope.saveNameChange = function() {
+          return LocalStorage.setSaveName(scope.path, scope.m.saveName);
+        };
+        return scope.click = function() {
+          return console.log('click');
+        };
+      }
+    };
+  });
+
   angular.module(DIRECTIVE_MODULE).directive('userFeedback', function() {
     var directive;
     return directive = {
@@ -217,10 +372,11 @@
     };
   });
 
-  app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api, Lints) {
+  app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api, Lints, LocalStorage) {
     var spinOpts, updateFavicon;
     $rootScope.appName = "lintblame";
     $rootScope.lintResults = {};
+    LocalStorage.initIfNecessary();
     spinOpts = {
       lines: 10,
       length: 5,
@@ -294,13 +450,16 @@
       lastRefresh += secs;
       return $rootScope.lastRefresh = lastRefresh;
     };
-    return $rootScope.deletePath = function(path) {
+    $rootScope.deletePath = function(path) {
       return delete $rootScope.lintResults[path];
+    };
+    return $rootScope.loadSavePath = function(path) {
+      return $rootScope.loadedSavePath = path;
     };
   });
 
-  angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api) {
-    var devPath, stopPolling, targetPathChange, testPath, updatePaths;
+  angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage, SavedTarget) {
+    var loadSave, stopPolling, targetPathChange, testPath, updatePaths;
     $rootScope.branchMode = false;
     $scope.showSubmitBtn = true;
     $scope.isPolling = false;
@@ -409,9 +568,19 @@
       $rootScope.branchMode = !$rootScope.branchMode;
       return testPath(true);
     };
-    devPath = '~/dev/ua/airship/airship/apps/messages';
-    $scope.targetPathInput = devPath;
-    return $scope.toggleBranchMode();
+    loadSave = function(path) {
+      var save;
+      if (!path) {
+        return;
+      }
+      save = LocalStorage.getSavedLintTarget(path);
+      $rootScope.branchMode = save.branchMode;
+      $scope.targetPathInput = path;
+      return testPath(true);
+    };
+    return $scope.$watch('loadedSavePath', function() {
+      return loadSave($rootScope.loadedSavePath);
+    });
   });
 
   angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {
@@ -422,6 +591,17 @@
       } else {
         return $scope.demotions[path] = !$scope.demotions[path];
       }
+    });
+  });
+
+  angular.module(APP_NAME).controller('SavesCtrl', function($scope, $rootScope, LocalStorage) {
+    var update;
+    update = function() {
+      return $scope.saves = LocalStorage.savedLintTargets();
+    };
+    update();
+    return LocalStorage.addListener(function() {
+      return update();
     });
   });
 

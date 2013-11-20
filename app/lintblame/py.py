@@ -79,7 +79,6 @@ def pyflakes(path):
 
 def pyflakes_issues(path):
     raw = pyflakes(path)
-    print('raw: {0}'.format(raw))
     hits = PYFLAKES_REX.findall(raw)
     results = []
     for hit in hits:
@@ -90,7 +89,6 @@ def pyflakes_issues(path):
             'message': hit[1],
             'reporter': 'Pyflakes'
         })
-    print('results: {0}'.format(results))
     return results
 
 # def pylint_issues(path):
