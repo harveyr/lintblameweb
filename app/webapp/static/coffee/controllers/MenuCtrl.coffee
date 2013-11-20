@@ -68,6 +68,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             console.log 'here'
             return
         $scope.showSubmitBtn = false
+        $scope.showSaveBtn = true
         $scope.acceptedPath = $scope.targetPathInput
         Api.fullScan($scope.targets).then (response) ->
             $rootScope.updateResults response
@@ -85,6 +86,11 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
     $scope.toggleBranchMode = ->
         $rootScope.branchMode = !$rootScope.branchMode
         testPath(true)
+
+    $scope.saveState = ->
+        saved = new SavedTarget({path: $scope.acceptedPath, branchMode: true})
+        LocalStorage.saveLintTarget saved
+        $scope.showSaveBtn = false
 
     loadSave = (path) ->
         if not path

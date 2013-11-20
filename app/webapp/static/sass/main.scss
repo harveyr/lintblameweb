@@ -23,10 +23,17 @@ a {
     &.inactive {
         color: $xtradim;
     }
+    &.danger:hover {
+        color: $orange;
+    }
 }
 
 .tiny {
     font-size: 9px;
+}
+
+.small {
+    font-size: $smallFontSize;
 }
 
 .dim {
@@ -86,11 +93,20 @@ a {
     background-color: darken($bgColor, 3%);
     padding: 8px;
     border-radius: 4px;
+    margin-bottom: 5px;
     input {
         height: 24px;
         font-size: 12px;
         border: 1px solid #444;
         color: $dim;
+    }
+
+    .save-details {
+        margin-top: 6px;
+    }
+
+    .actions {
+        margin-top: 4px;
     }
 }
 

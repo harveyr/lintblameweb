@@ -24,6 +24,10 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', (SavedTarget) ->
         savedLintTargets: ->
             @get @SAVED_TARGETS_KEY
 
+        updateSavedLintTargets: (saved) ->
+            @setAttr @SAVED_TARGETS_KEY, saved
+            
+
         saveLintTarget: (saveTarget) ->
             currentSaved = @get @SAVED_TARGETS_KEY
             path = saveTarget.path
@@ -31,7 +35,7 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', (SavedTarget) ->
                 throw "Bad path: #{path}"
             saveTarget.setUpdated()
             currentSaved[path] = saveTarget.toObj()
-            @setAttr @SAVED_TARGETS_KEY, currentSaved
+            @updateSavedLintTargets currentSaved
 
         getSavedLintTarget: (path) ->
             saved = @savedLintTargets()
@@ -44,6 +48,12 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', (SavedTarget) ->
             target = @getSavedLintTarget path
             target.saveName = name
             @saveLintTarget target
+
+        deleteSave: (path) ->
+            saved = @savedLintTargets()
+            if _.has saved, path
+                delete saved[path]
+            @updateSavedLintTargets saved
 
         resetAppStorage: ->
             console.log 'resetting app storage'

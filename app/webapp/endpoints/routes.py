@@ -1,16 +1,9 @@
 import os
-import time
-import datetime
 import logging
 from collections import defaultdict
-from app.util import jsonify, utc_ms
+from app.util import jsonify
 from flask import (
-    render_template,
     request,
-    flash,
-    redirect,
-    url_for,
-    session,
     Blueprint,
     abort,
 )
@@ -24,8 +17,9 @@ blueprint = Blueprint('endpoints', __name__)
 
 
 def valid_target(path):
-    name, ext = os.path.splitext(path)
+    ext = os.path.splitext(path)[1]
     return ext in ['.py', '.go']
+
 
 def get_path_or_400():
     path = request.args.get('path')
@@ -34,6 +28,7 @@ def get_path_or_400():
     if path.startswith('~'):
         path = os.path.expanduser(path)
     return path
+
 
 def paths_or_400():
     joined_paths = request.args.get('paths')
@@ -44,6 +39,7 @@ def paths_or_400():
         if p[0] == '~':
             split_paths[i] = os.path.expanduser(p)
     return split_paths
+
 
 @blueprint.route('/dumb')
 def dumb_route():
@@ -95,6 +91,7 @@ def _get_results(path):
         result['issues'] += py.pep8_issues(path)
         result['issues'] += py.pyflakes_issues(path)
     return result
+
 
 @blueprint.route('/fullscan')
 def fullscan():

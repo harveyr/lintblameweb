@@ -10,9 +10,14 @@ a.active {
   color: #f59120; }
 a.inactive {
   color: #8c8c8c; }
+a.danger:hover {
+  color: #f59120; }
 
 .tiny {
   font-size: 9px; }
+
+.small {
+  font-size: 11px; }
 
 .dim, .lint-issues .reporter {
   color: #b3b3b3; }
@@ -51,12 +56,17 @@ a.inactive {
 .saved-target {
   background-color: #1f2124;
   padding: 8px;
-  border-radius: 4px; }
+  border-radius: 4px;
+  margin-bottom: 5px; }
   .saved-target input {
     height: 24px;
     font-size: 12px;
     border: 1px solid #444;
     color: #b3b3b3; }
+  .saved-target .save-details {
+    margin-top: 6px; }
+  .saved-target .actions {
+    margin-top: 4px; }
 
 .lint-issues {
   margin-top: 5px; }

@@ -159,6 +159,10 @@
         return this.get(this.SAVED_TARGETS_KEY);
       };
 
+      LocalStorage.prototype.updateSavedLintTargets = function(saved) {
+        return this.setAttr(this.SAVED_TARGETS_KEY, saved);
+      };
+
       LocalStorage.prototype.saveLintTarget = function(saveTarget) {
         var currentSaved, path;
         currentSaved = this.get(this.SAVED_TARGETS_KEY);
@@ -168,7 +172,7 @@
         }
         saveTarget.setUpdated();
         currentSaved[path] = saveTarget.toObj();
-        return this.setAttr(this.SAVED_TARGETS_KEY, currentSaved);
+        return this.updateSavedLintTargets(currentSaved);
       };
 
       LocalStorage.prototype.getSavedLintTarget = function(path) {
@@ -186,6 +190,15 @@
         target = this.getSavedLintTarget(path);
         target.saveName = name;
         return this.saveLintTarget(target);
+      };
+
+      LocalStorage.prototype.deleteSave = function(path) {
+        var saved;
+        saved = this.savedLintTargets();
+        if (_.has(saved, path)) {
+          delete saved[path];
+        }
+        return this.updateSavedLintTargets(saved);
       };
 
       LocalStorage.prototype.resetAppStorage = function() {
@@ -318,7 +331,7 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"saved-target\" ng-click=\"click()\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"dim\">\n        <span class=\"tiny\">\n            {{m.path}}\n        </span>\n    </div>\n    <div>\n        <small>\n            <a ng-click=\"loadSavePath(path)\">Load</a>\n        </small>\n    </div>\n</div>",
+      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"dim tiny save-details\">\n        {{m.path}}\n        <div class=\"pull-right\">\n            <span class=\"label label-primary\" ng-show=\"data.branchMode\">B</span>\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">Load</a>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
         var frag;
         scope.m = {
@@ -334,8 +347,8 @@
         scope.saveNameChange = function() {
           return LocalStorage.setSaveName(scope.path, scope.m.saveName);
         };
-        return scope.click = function() {
-          return console.log('click');
+        return scope.deleteSave = function() {
+          return LocalStorage.deleteSave(scope.path);
         };
       }
     };
@@ -547,6 +560,7 @@
         return;
       }
       $scope.showSubmitBtn = false;
+      $scope.showSaveBtn = true;
       $scope.acceptedPath = $scope.targetPathInput;
       return Api.fullScan($scope.targets).then(function(response) {
         $rootScope.updateResults(response);
@@ -567,6 +581,15 @@
     $scope.toggleBranchMode = function() {
       $rootScope.branchMode = !$rootScope.branchMode;
       return testPath(true);
+    };
+    $scope.saveState = function() {
+      var saved;
+      saved = new SavedTarget({
+        path: $scope.acceptedPath,
+        branchMode: true
+      });
+      LocalStorage.saveLintTarget(saved);
+      return $scope.showSaveBtn = false;
     };
     loadSave = function(path) {
       var save;

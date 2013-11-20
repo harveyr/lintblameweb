@@ -27,7 +27,8 @@ def utc_ms(date_obj):
 class LawDiffSerializer(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
-            obj_date = calendar.timegm(o.timetuple()) * 1000 + o.microsecond / 1000
+            obj_date = (calendar.timegm(o.timetuple()) * 1000 +
+                        o.microsecond / 1000)
             return obj_date
 
 

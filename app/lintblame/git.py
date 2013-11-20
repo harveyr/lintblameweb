@@ -1,5 +1,4 @@
 import subprocess
-import subprocess
 import re
 import os
 
@@ -18,7 +17,7 @@ def git_path(path):
         stderr=subprocess.PIPE,
         cwd=dir_
     )
-    out, err = proc.communicate()
+    out = proc.communicate()[0]
     if out:
         return out.strip()
     return None
@@ -60,7 +59,7 @@ def git_branch_files(path):
         stderr=subprocess.PIPE,
         cwd=top_dir
     )
-    out, err = proc.communicate()
+    out = proc.communicate()[0]
 
     all_files = set(out.splitlines())
 
@@ -72,11 +71,10 @@ def git_branch_files(path):
             stderr=subprocess.PIPE,
             cwd=path
         )
-        out, err = proc.communicate()
+        out = proc.communicate()[0]
         all_files.update(out.splitlines())
 
-    print('all_files: {0}'.format(all_files))
-    return [os.path.join(top_dir, i) for i in filter(None, all_files)]
+    return [os.path.join(top_dir, i) for i in all_files if i]
 
 
 def blame(path):
