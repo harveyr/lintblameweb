@@ -6,7 +6,9 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 <div class="path">
                     <span class="label {{countClass}}">{{totalCount}}</span>
                         &nbsp;
-                    <span class="dim">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>
+                    <span class="path-parts">
+                        <span class="head">{{pathHead}}/</span><span class="tail">{{pathTail}}</span>
+                    </span>
 
                     <div class="pull-right">
                         <a ng-click="demote(path)">
@@ -53,6 +55,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                     return
 
                 scope.data = scope.lintResults[scope.path]
+
                 issuesByLine = {}
                 totalCount = 0
                 for issue in scope.data.issues
@@ -75,16 +78,29 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 scope.sortedLines = lineInts.sort (a, b) ->
                     a - b
 
-                pathParts = scope.path.split('/')            
-                scope.pathParts = []
-                if pathParts.length > 1
-                    scope.pathParts.push(
-                        pathParts[0...pathParts.length - 1].join('/')
-                    )
-                else
-                    scope.pathParts.push ''
-                scope.pathParts.push pathParts[pathParts.length - 1]
+                splitStr = scope.acceptedLintPath
+                if splitStr.charAt 0 == '~'
+                    splitStr = splitStr.substr(1)
+                relPath = scope.path.split(splitStr).pop()
+                if relPath.charAt(0) == '/'
+                    relPath = relPath.substr(1)
 
+                parts = relPath.split('/')
+                scope.pathTail = parts.pop()
+                scope.pathHead = parts.join('/')
+
+                # pathParts = scope.path.split('/')
+                # pathHead = ''
+                # scope.pathTail = pathParts.pop()
+                # while pathHead.length < 30
+                #     nextPart = pathParts.pop()
+                #     if _.isUndefined nextPart
+                #         break
+                #     pathHead = nextPart + "/#{pathHead}"
+                # if pathHead.length < scope.path.length - scope.pathTail.length
+                #     pathHead = '...' + pathHead
+                # scope.pathHead = pathHead.substr(1)
+ 
             scope.blameLine = (line) ->
                 return scope.data.blame[line - 1]
 

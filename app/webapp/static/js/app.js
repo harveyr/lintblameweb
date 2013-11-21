@@ -263,10 +263,10 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"lint-issues\" ng-class=\"{demoted: demotions[path]}\">\n    <div class=\"path\">\n        <span class=\"label {{countClass}}\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"dim\">{{pathParts[0]}}/</span><strong>{{pathParts[1]}}</strong>\n\n        <div class=\"pull-right\">\n            <a ng-click=\"demote(path)\">\n                <span ng-show=\"!demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-down dim hover-bright\">\n                </span>\n                <span ng-show=\"demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-up dim hover-bright\">\n                </span>\n            </a>\n        </div>\n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!demotions[path]\">\n        <div class=\"line\">\n            {{line}}\n        </div>\n        <div class=\"detail\">\n            <code class=\"code\">\n                {{data.lines[line - 1]}}\n            </code>\n            <table>\n                <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                    <td class=\"reporter\">\n                        {{issue.reporter}}\n                        {{issue.code}}\n                    </td>\n                    <td class=\"{{blameClass(line)}}\">\n                        [{{blameLine(issue.line)}}]\n                    </td>\n                    <td>\n                        {{issue.message}}\n                    </td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>",
+      template: "<div class=\"lint-issues\" ng-class=\"{demoted: demotions[path]}\">\n    <div class=\"path\">\n        <span class=\"label {{countClass}}\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"path-parts\">\n            <span class=\"head\">{{pathHead}}/</span><span class=\"tail\">{{pathTail}}</span>\n        </span>\n\n        <div class=\"pull-right\">\n            <a ng-click=\"demote(path)\">\n                <span ng-show=\"!demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-down dim hover-bright\">\n                </span>\n                <span ng-show=\"demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-up dim hover-bright\">\n                </span>\n            </a>\n        </div>\n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!demotions[path]\">\n        <div class=\"line\">\n            {{line}}\n        </div>\n        <div class=\"detail\">\n            <code class=\"code\">\n                {{data.lines[line - 1]}}\n            </code>\n            <table>\n                <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                    <td class=\"reporter\">\n                        {{issue.reporter}}\n                        {{issue.code}}\n                    </td>\n                    <td class=\"{{blameClass(line)}}\">\n                        [{{blameLine(issue.line)}}]\n                    </td>\n                    <td>\n                        {{issue.message}}\n                    </td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
         scope.update = function() {
-          var issue, issuesByLine, line, lineInts, pathParts, totalCount, _i, _len, _ref;
+          var issue, issuesByLine, line, lineInts, parts, relPath, splitStr, totalCount, _i, _len, _ref;
           if (!_.has(scope.lintResults, scope.path)) {
             return;
           }
@@ -296,14 +296,17 @@
           scope.sortedLines = lineInts.sort(function(a, b) {
             return a - b;
           });
-          pathParts = scope.path.split('/');
-          scope.pathParts = [];
-          if (pathParts.length > 1) {
-            scope.pathParts.push(pathParts.slice(0, pathParts.length - 1).join('/'));
-          } else {
-            scope.pathParts.push('');
+          splitStr = scope.acceptedLintPath;
+          if (splitStr.charAt(0 === '~')) {
+            splitStr = splitStr.substr(1);
           }
-          return scope.pathParts.push(pathParts[pathParts.length - 1]);
+          relPath = scope.path.split(splitStr).pop();
+          if (relPath.charAt(0) === '/') {
+            relPath = relPath.substr(1);
+          }
+          parts = relPath.split('/');
+          scope.pathTail = parts.pop();
+          return scope.pathHead = parts.join('/');
         };
         scope.blameLine = function(line) {
           return scope.data.blame[line - 1];
@@ -422,6 +425,7 @@
       }
     };
     $rootScope.activePaths = function() {
+      console.log('$rootScope.lintResults:', $rootScope.lintResults);
       if (!$rootScope.lintResults) {
         return [];
       }
@@ -464,20 +468,24 @@
       return $rootScope.lastRefresh = lastRefresh;
     };
     $rootScope.deletePath = function(path) {
+      console.log("DELETING " + path);
       return delete $rootScope.lintResults[path];
     };
-    return $rootScope.loadSavePath = function(path) {
+    $rootScope.loadSavePath = function(path) {
       return $rootScope.loadedSavePath = path;
+    };
+    return $rootScope.resetLintResults = function() {
+      return $rootScope.lintResults = {};
     };
   });
 
   angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage, SavedTarget) {
-    var loadSave, stopPolling, targetPathChange, testPath, updatePaths;
+    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath, updatePaths;
     $rootScope.branchMode = false;
     $scope.showSubmitBtn = true;
     $scope.isPolling = false;
     $scope.pollCount = 0;
-    $scope.acceptedPath = null;
+    $rootScope.acceptedLintPath = null;
     $scope.pendingPaths = [];
     testPath = function(andAccept) {
       var deferred, path;
@@ -502,10 +510,10 @@
       return deferred.promise;
     };
     updatePaths = function() {
-      if (!$scope.acceptedPath) {
+      if (!$rootScope.acceptedLintPath) {
         return;
       }
-      return Api.testPath($scope.acceptedPath, $rootScope.branchMode).then(function(response) {
+      return Api.testPath($rootScope.acceptedLintPath, $rootScope.branchMode).then(function(response) {
         var newPaths;
         newPaths = _.without(response.targets, $rootScope.activePaths());
         console.log('newPaths:', newPaths, $scope.pendingPaths);
@@ -521,28 +529,26 @@
       }
       return $scope.isPolling = false;
     };
+    showSaveBtn = function() {
+      return $scope.showSaveBtn = true;
+    };
+    hideSaveBtn = function() {
+      return $scope.showSaveBtn = false;
+    };
     $scope.poll = function() {
       stopPolling();
       $scope.pollInterval = setInterval(function() {
         var paths;
         paths = $rootScope.activePaths();
         if (paths.length > 0) {
-          Api.poll(paths, $rootScope.branchMode).then(function(response) {
-            var p, _i, _len, _ref, _results;
+          Api.poll([$rootScope.acceptedLintPath], $rootScope.branchMode).then(function(response) {
             if (!_.isEmpty(response)) {
-              $rootScope.updateResults(response.changed);
-              if (_.has(response, 'delete')) {
-                _ref = response["delete"];
-                _results = [];
-                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                  p = _ref[_i];
-                  _results.push($rootScope.deletePath(p));
-                }
-                return _results;
-              }
+              return $rootScope.updateResults(response.changed);
             }
           });
           return $scope.pollCount += 1;
+        } else {
+          return console.log('not polling because no paths');
         }
       }, 2000);
       return $scope.isPolling = true;
@@ -561,7 +567,7 @@
       }
       $scope.showSubmitBtn = false;
       $scope.showSaveBtn = true;
-      $scope.acceptedPath = $scope.targetPathInput;
+      $rootScope.acceptedLintPath = $scope.targetPathInput;
       return Api.fullScan($scope.targets).then(function(response) {
         $rootScope.updateResults(response);
         return $scope.poll();
@@ -580,25 +586,29 @@
     $scope.targetPathChange = _.throttle(targetPathChange, 1000);
     $scope.toggleBranchMode = function() {
       $rootScope.branchMode = !$rootScope.branchMode;
-      return testPath(true);
+      testPath(true);
+      return showSaveBtn();
     };
     $scope.saveState = function() {
-      var saved;
-      saved = new SavedTarget({
-        path: $scope.acceptedPath,
-        branchMode: true
-      });
-      LocalStorage.saveLintTarget(saved);
-      return $scope.showSaveBtn = false;
+      var properties, save;
+      properties = {
+        path: $rootScope.acceptedLintPath,
+        branchMode: $rootScope.branchMode
+      };
+      save = new SavedTarget(properties);
+      LocalStorage.saveLintTarget(save);
+      return hideSaveBtn();
     };
     loadSave = function(path) {
       var save;
       if (!path) {
         return;
       }
+      $rootScope.resetLintResults();
       save = LocalStorage.getSavedLintTarget(path);
       $rootScope.branchMode = save.branchMode;
       $scope.targetPathInput = path;
+      $rootScope.acceptedLintPath = path;
       testPath(true);
       return $scope.showSaveBtn = false;
     };

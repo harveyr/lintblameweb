@@ -37,6 +37,7 @@ app = angular.module(APP_NAME, [
         
 
     $rootScope.activePaths = ->
+        console.log '$rootScope.lintResults:', $rootScope.lintResults
         if not $rootScope.lintResults
             return []
         return _.keys $rootScope.lintResults
@@ -86,7 +87,11 @@ app = angular.module(APP_NAME, [
         # updateFavicon()
 
     $rootScope.deletePath = (path) ->
+        console.log "DELETING #{path}"
         delete $rootScope.lintResults[path]
 
     $rootScope.loadSavePath = (path) ->
         $rootScope.loadedSavePath = path
+
+    $rootScope.resetLintResults = ->
+        $rootScope.lintResults = {}

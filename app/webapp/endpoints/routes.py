@@ -18,7 +18,7 @@ blueprint = Blueprint('endpoints', __name__)
 
 def valid_target(path):
     ext = os.path.splitext(path)[1]
-    return ext in ['.py', '.go']
+    return ext in ['.py', '.go', '.js', '.json']
 
 
 def get_path_or_400():
@@ -46,6 +46,20 @@ def dumb_route():
     return jsonify({'success': True})
 
 
+def get_path_targets(path):
+    logger.info('get_path_targets')
+    if os.path.isdir(path):
+        contents = [os.path.join(path, i) for i in os.listdir(path)
+                    if not i.startswith('.')]
+        logger.info('contents: {0}'.format(contents))
+        return [i for i in contents if valid_target(i)]
+    else:
+        if valid_target[path]:
+            return [path]
+        else:
+            return []
+
+
 @blueprint.route('/testpath')
 def test_path():
     path = get_path_or_400()
@@ -57,19 +71,8 @@ def test_path():
         response['dir'] = os.path.isdir(path)
         if request.args.get('branch'):
             response['targets'] = git.git_branch_files(path)
-
-        elif response['dir']:
-            contents = [os.path.join(path, i) for i in os.listdir(path)
-                        if not i.startswith('.')]
-            targets = [i for i in contents if valid_target(i)]
-            response['contents'] = contents
-            response['targets'] = targets
-
         else:
-            if valid_target(path):
-                response['targets'] = [path]
-            else:
-                response['targets'] = []
+            response['targets'] = get_path_targets(path)
 
         git_branch = git.git_branch(path)
         if git_branch:
@@ -90,6 +93,8 @@ def _get_results(path):
         result['issues'] += py.pylint_issues(path)
         result['issues'] += py.pep8_issues(path)
         result['issues'] += py.pyflakes_issues(path)
+    elif path.endswith('.js') or path.endswith('.json'):
+        result['issues'] += py.jshint_issues(path)
     return result
 
 
@@ -108,21 +113,20 @@ def fullscan():
 @blueprint.route('/poll')
 def poll_paths():
     request_paths = paths_or_400()
-
     branch_mode = request.args.get('branch')
-    if branch_mode:
-        poll_paths = [p for p in git.git_branch_files(request_paths[0])
-                      if valid_target(p)]
+    if branch_mode and branch_mode.lower() != 'false':
+        poll_paths = [p for p in git.git_branch_files(request_paths[0])]
     else:
-        poll_paths = request_paths
+        logger.info('here!')
+        poll_paths = get_path_targets(request_paths[0])
 
     since = float(int(request.args.get('since')) / 1000)
-    # since_date = datetime.datetime.fromtimestamp(since / 1000)
     response = {
         'changed': {}
     }
     for p in poll_paths:
         mod = os.path.getmtime(p)
+
         if mod > since:
             response['changed'][p] = _get_results(p)
 

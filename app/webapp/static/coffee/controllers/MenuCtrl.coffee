@@ -3,8 +3,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
     $scope.showSubmitBtn = true
     $scope.isPolling = false
     $scope.pollCount = 0
-    $scope.acceptedPath = null
-
+    $rootScope.acceptedLintPath = null
     $scope.pendingPaths = []
 
     testPath = (andAccept=false) ->
@@ -26,10 +25,10 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     # Not using this currently
     updatePaths = ->
-        if not $scope.acceptedPath
+        if not $rootScope.acceptedLintPath
             return
 
-        Api.testPath($scope.acceptedPath, $rootScope.branchMode).then (response) ->
+        Api.testPath($rootScope.acceptedLintPath, $rootScope.branchMode).then (response) ->
             newPaths = _.without response.targets, $rootScope.activePaths()
             console.log 'newPaths:', newPaths, $scope.pendingPaths
             $scope.pendingPaths = newPaths
@@ -41,19 +40,28 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             clearInterval($scope.pollInterval)
         $scope.isPolling = false
 
+    showSaveBtn = ->
+        $scope.showSaveBtn = true
+
+    hideSaveBtn = ->
+        $scope.showSaveBtn = false
+
     $scope.poll = ->
         stopPolling()
 
         $scope.pollInterval = setInterval ->
             paths = $rootScope.activePaths()
             if paths.length > 0
-                Api.poll(paths, $rootScope.branchMode).then (response) ->
+                Api.poll([$rootScope.acceptedLintPath], $rootScope.branchMode).then (response) ->
                     if not _.isEmpty response
                         $rootScope.updateResults response.changed
-                        if _.has response, 'delete'
-                            for p in response.delete
-                                $rootScope.deletePath p
+                        # This isn't working correctly
+                        # if _.has response, 'delete'
+                        #     for p in response.delete
+                        #         $rootScope.deletePath p
                 $scope.pollCount += 1
+            else
+                console.log 'not polling because no paths'
         , 2000
         $scope.isPolling = true
 
@@ -69,7 +77,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             return
         $scope.showSubmitBtn = false
         $scope.showSaveBtn = true
-        $scope.acceptedPath = $scope.targetPathInput
+        $rootScope.acceptedLintPath = $scope.targetPathInput
         Api.fullScan($scope.targets).then (response) ->
             $rootScope.updateResults response
             $scope.poll()
@@ -86,19 +94,24 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
     $scope.toggleBranchMode = ->
         $rootScope.branchMode = !$rootScope.branchMode
         testPath(true)
+        showSaveBtn()
 
     $scope.saveState = ->
-        saved = new SavedTarget({path: $scope.acceptedPath, branchMode: true})
-        LocalStorage.saveLintTarget saved
-        $scope.showSaveBtn = false
+        properties = 
+            path: $rootScope.acceptedLintPath
+            branchMode: $rootScope.branchMode
+        save = new SavedTarget(properties)
+        LocalStorage.saveLintTarget save
+        hideSaveBtn()
 
     loadSave = (path) ->
         if not path
             return
-
+        $rootScope.resetLintResults()
         save = LocalStorage.getSavedLintTarget path
         $rootScope.branchMode = save.branchMode
         $scope.targetPathInput = path
+        $rootScope.acceptedLintPath = path
         testPath(true)
         $scope.showSaveBtn = false
 

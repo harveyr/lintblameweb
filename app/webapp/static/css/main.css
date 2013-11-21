@@ -27,8 +27,9 @@ a.danger:hover {
 .text-shadow, .lint-issues {
   text-shadow: 1px 1px #000; }
 
-.container.content-wrapper {
-  margin-top: 20px; }
+.content-wrapper {
+  margin: 20px 20px 20px 10px;
+  padding: 0 15px; }
 
 .title {
   font-size: 20px;
@@ -39,6 +40,13 @@ a.danger:hover {
 
 .menu-row {
   margin-bottom: 15px; }
+  .menu-row > div {
+    display: inline-block; }
+  .menu-row button {
+    position: relative;
+    top: 1px; }
+  .menu-row .input-wrapper {
+    width: 80%; }
 
 .submenu-row {
   margin-top: 10px;
@@ -80,6 +88,15 @@ a.danger:hover {
     border-radius: 3px; }
     .lint-issues .path:hover {
       background-color: rgba(0, 0, 0, 0.3); }
+    .lint-issues .path .label {
+      position: relative;
+      top: -2px; }
+    .lint-issues .path .head, .lint-issues .path .tail {
+      font-size: 18px; }
+    .lint-issues .path .head {
+      color: #b3b3b3; }
+    .lint-issues .path .tail {
+      font-weight: bold; }
   .lint-issues.demoted {
     opacity: 0.3; }
   .lint-issues .line-wrapper {

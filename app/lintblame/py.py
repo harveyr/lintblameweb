@@ -3,9 +3,12 @@ from pylint.epylint import py_run as pylint_run
 import re
 import subprocess
 
+
 PEP8_REX = re.compile(r'\w+:(\d+):(\d+):\s(\w+)\s(.+)$', re.MULTILINE)
 PYLINT_REX = re.compile(r'^(\w):\s+(\d+),\s*(\d+):\s(.+)$', re.MULTILINE)
 PYFLAKES_REX = re.compile(r'\w+:(\d+):\s(.+)$', re.MULTILINE)
+JSHINT_REX = re.compile(r'\w+: line (\d+), col (\d+),\s(.+)$', re.MULTILINE)
+
 
 def pylint_(path):
     """Returns pylint results."""
@@ -16,6 +19,7 @@ def pylint_(path):
     for line in err:
         print('line: {0}'.format(line))
     return out
+
 
 def pylint(path):
     proc = subprocess.Popen(
@@ -74,7 +78,7 @@ def pyflakes(path):
         stderr=subprocess.PIPE
     )
     out, err = proc.communicate()
-    return out + err    
+    return out + err
 
 
 def pyflakes_issues(path):
@@ -91,14 +95,27 @@ def pyflakes_issues(path):
         })
     return results
 
-# def pylint_issues(path):
-#     results = pylint(path)
-#     for code, line, col, msg in REXES['pylint'].findall(results):
-#         yield Issue('pylint', line, col, code, msg)
+
+def jshint(path):
+    proc = subprocess.Popen(
+        ['jshint', path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    out, err = proc.communicate()
+    return out + err
 
 
-# def pep8_issues(path):
-#     results = pep8(path)
-#     for line, col, code, msg in REXES['pep8'].findall(results):
-#         yield Issue('pep8', line, col, code, msg)
-
+def jshint_issues(path):
+    raw = jshint(path)
+    hits = JSHINT_REX.findall(raw)
+    results = []
+    for hit in hits:
+        results.append({
+            'line': hit[0],
+            'column': hit[1],
+            'code': '',
+            'message': hit[2],
+            'reporter': 'JSHint',
+        })
+    return results

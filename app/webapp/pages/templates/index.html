@@ -17,76 +17,81 @@
 
   <body>
   {% raw %}
-    <div class="container content-wrapper">
-        <div class="row menu-row" ng-controller="MenuCtrl">
-            <div class="col-sm-2 col-md-2">
+    <div class="content-wrapper">
+        <div class="row"> <!-- Parent row -->       
+            <div class="col-md-2 col-sm-3 col-xs-4">
                 <div class="title">
-                    lint<span>blame</span>
+                    <span>thunder</span>box
                 </div>
-            </div>
-            <div class="col-sm-10">
-                <div class="row">
-                    <div class="col-sm-11">
-                        <div 
-                            ng-class="{'has-success': pathExists, 'has-error': targetPathInput.length > 0 && !pathExists}"
-                        >
-                            <input type="text" id="target-path-input" class="form-control code" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
-                        </div>
-                    </div>
-                    <div class="col-sm-1">
-                        <button class="btn btn-success btn-xs"
-                            ng-show="showSubmitBtn"
-                            ng-click="acceptPath()"
-                        >
-                            Okay!
-                        </button>
-                        <button class="btn btn-info btn-xs"
-                            ng-click="saveState()"
-                            ng-show="showSaveBtn"
-                        >
-                            Save
-                        </button>
-                    </div>
-                    <div class="pull-right">
-                        <div class="pull-right" id="loading"></div>
-                    </div>
-                </div>
-                <div class="submenu-row">
-                    <div ng-show="pathExists && vcs">
-                        <a 
-                            ng-click="toggleBranchMode()"
-                            ng-class="{active: branchMode, inactive: !branchMode}"
-                        >
-                            {{branch}}
-                        </a>
-                    </div>
-                    <div ng-show="pollCount">
-                        <a ng-click="togglePolling()"
-                            ng-class="{active: isPolling, inactive: !isPolling}"
-                        >
-                            <span class="glyphicon"
-                                ng-class="{'glyphicon-play': isPolling, 'glyphicon-pause': !isPolling}"
-                            ></span>
-                            <span ng-show="!isPolling">Not</span>
-                            Polling
-                        </a>
-                    </div>
-                    <div class="pull-right dim">
-                        <span ng-show="lastRefresh">
-                            Updated {{lastRefresh}}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-2" ng-controller="SavesCtrl">
-                <div class="saves-wrapper">
+
+                <div class="saves-wrapper" ng-controller="SavesCtrl">
                     <div ng-repeat="(path, data) in saves" saved-target></div>
                 </div>
             </div>
-            <div class="col-sm-10" ng-controller="ResultsCtrl">
-                <div ng-repeat="path in sortedPaths" lint-issues></div>
+            <div class="col-sm-9 col-md-10 col-xs-8">
+                <div ng-controller="MenuCtrl">
+                    <div class="row">
+                        <div class="col-sm-11 col-xs-9">
+                            <div class="input-wrapper">
+                                <div 
+                                    ng-class="{'has-success': pathExists, 'has-error': targetPathInput.length > 0 && !pathExists}"
+                                >
+                                    <input type="text" id="target-path-input" class="form-control code" ng-model="targetPathInput" placeholder="path/to/target" ng-change="targetPathChange(targetPathInput)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-1 col-xs-2">
+                            <div>
+                                <button class="btn btn-success btn-xs"
+                                    ng-show="showSubmitBtn"
+                                    ng-click="acceptPath()"
+                                >
+                                    Okay!
+                                </button>
+                                <button class="btn btn-info btn-xs"
+                                    ng-click="saveState()"
+                                    ng-show="showSaveBtn"
+                                >
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                        <div class="pull-right">
+                            <div class="pull-right" id="loading"></div>
+                        </div>
+                    </div>
+                    <div class="submenu-row">
+                        <div ng-show="pathExists && vcs">
+                            <a 
+                                ng-click="toggleBranchMode()"
+                                ng-class="{active: branchMode, inactive: !branchMode}"
+                            >
+                                {{branch}}
+                            </a>
+                        </div>
+                        <div ng-show="pollCount">
+                            <a ng-click="togglePolling()"
+                                ng-class="{active: isPolling, inactive: !isPolling}"
+                            >
+                                <span class="glyphicon"
+                                    ng-class="{'glyphicon-play': isPolling, 'glyphicon-pause': !isPolling}"
+                                ></span>
+                                <span ng-show="!isPolling">Not</span>
+                                Polling
+                            </a>
+                        </div>
+                        <div class="pull-right dim">
+                            <span ng-show="lastRefresh">
+                                Updated {{lastRefresh}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12" ng-controller="ResultsCtrl">
+                        <div ng-repeat="path in sortedPaths" lint-issues></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div> <!-- /container -->
