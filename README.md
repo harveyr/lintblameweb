@@ -5,7 +5,7 @@ This is a webapp that watches your code, linting and blaming all the livelong da
 
 **Very much a WIP.** It's the evolution of my last two attempts in this realm (a Python and a Go command-line utility).
 
-It currently supports only Python, using the pep8, pyflakes, and pylint utilities. I plan to steadily add support for more syntaxes.
+It currently supports **Python** (using pep8, pyflakes, and pylint), and **Javascript** (using JSHint). I plan to steadily add support for more linters and syntaxes.
 
 Disclaimer: I'm not a UI/design guy.
 
