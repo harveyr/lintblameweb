@@ -1,16 +1,17 @@
-angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, LocalStorage, SavedTarget) ->
-    $rootScope.branchMode = false
+angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, LocalStorage) ->
     $scope.showSubmitBtn = true
     $scope.isPolling = false
     $scope.pollCount = 0
     $rootScope.acceptedLintPath = null
     $scope.pendingPaths = []
+    $rootScope.resetLintBundle()
 
     testPath = (andAccept=false) ->
         deferred = $q.defer()
         path = $scope.targetPathInput
-        Api.testPath(path, $rootScope.branchMode).then (response) ->
+        Api.testPath(path, $rootScope.lintBundle.branchMode).then (response) ->
             $scope.pathExists = response.exists
+            $scope.fullPath = response.path
             $scope.targets = response.targets
 
             if not _.isUndefined response.vcs
@@ -23,18 +24,6 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             deferred.resolve()
         deferred.promise
 
-    # Not using this currently
-    updatePaths = ->
-        if not $rootScope.acceptedLintPath
-            return
-
-        Api.testPath($rootScope.acceptedLintPath, $rootScope.branchMode).then (response) ->
-            newPaths = _.without response.targets, $rootScope.activePaths()
-            console.log 'newPaths:', newPaths, $scope.pendingPaths
-            $scope.pendingPaths = newPaths
-            if $scope.pendingPaths
-                console.log '$scope.pendingPaths:', $scope.pendingPaths
-
     stopPolling = ->
         if $scope.pollInterval
             clearInterval($scope.pollInterval)
@@ -42,17 +31,21 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     showSaveBtn = ->
         $scope.showSaveBtn = true
+        $scope.showSubmitBtn = false
 
     hideSaveBtn = ->
         $scope.showSaveBtn = false
 
-    $scope.poll = ->
+    $scope.startPolling = ->
         stopPolling()
 
         $scope.pollInterval = setInterval ->
             paths = $rootScope.activePaths()
             if paths.length > 0
-                Api.poll([$rootScope.acceptedLintPath], $rootScope.branchMode).then (response) ->
+                Api.poll(
+                    [$rootScope.acceptedLintPath],
+                    $rootScope.lintBundle.branchMode
+                ).then (response) ->
                     if not _.isEmpty response
                         $rootScope.updateResults response.changed
                         # This isn't working correctly
@@ -69,30 +62,34 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
         if $scope.isPolling
             stopPolling()
         else
-            $scope.poll()
+            $scope.startPolling()
+        $rootScope.updateLintBundle 'isPolling', $scope.isPolling
 
     $scope.acceptPath = ->
         if !$scope.targets or $scope.targets.length == 0
-            console.log 'here'
+            console.log 'no targets; aborting'
             return
-        $scope.showSubmitBtn = false
-        $scope.showSaveBtn = true
-        $rootScope.acceptedLintPath = $scope.targetPathInput
+        showSaveBtn()
+        $rootScope.updateLintBundle {
+            'inputPath': $scope.targetPathInput
+            'fullPath': $scope.fullPath
+        }
+
         Api.fullScan($scope.targets).then (response) ->
             $rootScope.updateResults response
-            $scope.poll()
 
     targetPathChange = ->
         stopPolling()
-        $rootScope.branchMode = false
         path = $scope.targetPathInput
         if path
+            $rootScope.resetLintBundle()
             $scope.showSubmitBtn = true
             testPath()
     $scope.targetPathChange = _.throttle(targetPathChange, 1000)
 
+
     $scope.toggleBranchMode = ->
-        $rootScope.branchMode = !$rootScope.branchMode
+        $rootScope.toggleBranchMode()
         testPath(true)
         showSaveBtn()
 
@@ -107,9 +104,9 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
     loadSave = (path) ->
         if not path
             return
-        $rootScope.resetLintResults()
-        save = LocalStorage.getSavedLintTarget path
-        $rootScope.branchMode = save.branchMode
+        $rootScope.resetLintBundle()
+        savedBundle = LocalStorage.savedLintBundle path
+        $rootScope.lintBundle = savedBundle
         $scope.targetPathInput = path
         $rootScope.acceptedLintPath = path
         testPath(true)
@@ -117,16 +114,3 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     $scope.$watch 'loadedSavePath', ->
         loadSave $rootScope.loadedSavePath
-
-
-    # Testing:
-    # console.log 'LocalStorage.get():', LocalStorage.get()
-    # devPath = '~/dev/ua/airship/airship/apps/messages'
-
-    # saved = new SavedTarget({path: devPath, branchMode: true})
-    # LocalStorage.saveLintTarget saved
-
-    # $scope.saves = LocalStorage.savedLintTargets()
-
-    # $scope.targetPathInput = devPath
-    # $scope.toggleBranchMode()

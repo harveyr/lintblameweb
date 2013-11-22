@@ -12,6 +12,15 @@
 
   angular.module(SERVICE_MODULE, []);
 
+  _.mixin({
+    dget: function(obj, key, default_) {
+      if (_.has(obj, key)) {
+        return obj[key];
+      }
+      return default_;
+    }
+  });
+
   angular.module(SERVICE_MODULE).service('Api', function($q, $http, $rootScope) {
     var Api;
     Api = (function() {
@@ -118,14 +127,14 @@
     return new Lints();
   });
 
-  angular.module(SERVICE_MODULE).service('LocalStorage', function(SavedTarget) {
+  angular.module(SERVICE_MODULE).service('LocalStorage', function() {
     var LocalStorage;
     LocalStorage = (function() {
       function LocalStorage() {}
 
       LocalStorage.prototype.STORAGE_KEY = 'lintblame';
 
-      LocalStorage.prototype.SAVED_TARGETS_KEY = 'saves';
+      LocalStorage.prototype.SAVED_BUNDLES_KEY = 'saves';
 
       LocalStorage.prototype.listeners = [];
 
@@ -155,41 +164,35 @@
         return all[key];
       };
 
-      LocalStorage.prototype.savedLintTargets = function() {
-        return this.get(this.SAVED_TARGETS_KEY);
+      LocalStorage.prototype._setSavedLintBundles = function(saved) {
+        return this.setAttr(this.SAVED_BUNDLES_KEY, saved);
       };
 
-      LocalStorage.prototype.updateSavedLintTargets = function(saved) {
-        return this.setAttr(this.SAVED_TARGETS_KEY, saved);
+      LocalStorage.prototype.savedLintBundles = function() {
+        return this.get(this.SAVED_BUNDLES_KEY);
       };
 
-      LocalStorage.prototype.saveLintTarget = function(saveTarget) {
+      LocalStorage.prototype.saveLintBundle = function(lintBundle) {
         var currentSaved, path;
-        currentSaved = this.get(this.SAVED_TARGETS_KEY);
-        path = saveTarget.path;
+        currentSaved = this.get(this.SAVED_BUNDLES_KEY);
+        path = lintBundle.fullPath;
         if (!path) {
-          throw "Bad path: " + path;
+          throw "LocalStorage.saveLintBundle(): Bad path: " + path;
         }
-        saveTarget.setUpdated();
-        currentSaved[path] = saveTarget.toObj();
-        return this.updateSavedLintTargets(currentSaved);
+        lintBundle.updated = Date.now();
+        currentSaved[path] = lintBundle;
+        return this._setSavedLintBundles(currentSaved);
       };
 
-      LocalStorage.prototype.getSavedLintTarget = function(path) {
-        var saved, target;
-        saved = this.savedLintTargets();
-        if (_.has(saved, path)) {
-          target = new SavedTarget(saved[path]);
-          return target;
-        }
-        throw "" + path + " is not saved!";
+      LocalStorage.prototype.savedLintBundle = function(path) {
+        return this.savedLintBundles()[path];
       };
 
       LocalStorage.prototype.setSaveName = function(path, name) {
-        var target;
-        target = this.getSavedLintTarget(path);
-        target.saveName = name;
-        return this.saveLintTarget(target);
+        var bundle;
+        bundle = this.savedLintBundle(path);
+        bundle.saveName = name;
+        return this.saveLintBundle(bundle);
       };
 
       LocalStorage.prototype.deleteSave = function(path) {
@@ -198,14 +201,14 @@
         if (_.has(saved, path)) {
           delete saved[path];
         }
-        return this.updateSavedLintTargets(saved);
+        return this._setSavedLintBundles(saved);
       };
 
       LocalStorage.prototype.resetAppStorage = function() {
         var defaultState;
         console.log('resetting app storage');
         defaultState = {};
-        defaultState[this.SAVED_TARGETS_KEY] = {};
+        defaultState[this.SAVED_BUNDLES_KEY] = {};
         return this.set(defaultState);
       };
 
@@ -225,40 +228,6 @@
     return new LocalStorage();
   });
 
-  angular.module(SERVICE_MODULE).service('SavedTarget', function() {
-    var SavedTarget;
-    SavedTarget = (function() {
-      function SavedTarget(properties) {
-        var defaults,
-          _this = this;
-        defaults = {
-          branchMode: false
-        };
-        properties = _.extend(defaults, properties);
-        _.each(properties, function(val, key) {
-          return _this[key] = val;
-        });
-      }
-
-      SavedTarget.prototype.toObj = function() {
-        return {
-          path: this.path,
-          branchMode: this.branchMode,
-          updated: this.updated,
-          saveName: this.saveName
-        };
-      };
-
-      SavedTarget.prototype.setUpdated = function() {
-        return this.updated = Date.now();
-      };
-
-      return SavedTarget;
-
-    })();
-    return SavedTarget;
-  });
-
   angular.module(DIRECTIVE_MODULE).directive('lintIssues', function($rootScope) {
     var directive;
     return directive = {
@@ -266,11 +235,12 @@
       template: "<div class=\"lint-issues\" ng-class=\"{demoted: demotions[path]}\">\n    <div class=\"path\">\n        <span class=\"label {{countClass}}\">{{totalCount}}</span>\n            &nbsp;\n        <span class=\"path-parts\">\n            <span class=\"head\">{{pathHead}}/</span><span class=\"tail\">{{pathTail}}</span>\n        </span>\n\n        <div class=\"pull-right\">\n            <a ng-click=\"demote(path)\">\n                <span ng-show=\"!demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-down dim hover-bright\">\n                </span>\n                <span ng-show=\"demotions[path]\"\n                    class=\"glyphicon glyphicon-thumbs-up dim hover-bright\">\n                </span>\n            </a>\n        </div>\n    </div>\n    <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!demotions[path]\">\n        <div class=\"line\">\n            {{line}}\n        </div>\n        <div class=\"detail\">\n            <code class=\"code\">\n                {{data.lines[line - 1]}}\n            </code>\n            <table>\n                <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                    <td class=\"reporter\">\n                        {{issue.reporter}}\n                        {{issue.code}}\n                    </td>\n                    <td class=\"{{blameClass(line)}}\">\n                        [{{blameLine(issue.line)}}]\n                    </td>\n                    <td>\n                        {{issue.message}}\n                    </td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
         scope.update = function() {
-          var issue, issuesByLine, line, lineInts, parts, relPath, splitStr, totalCount, _i, _len, _ref;
-          if (!_.has(scope.lintResults, scope.path)) {
+          var issue, issuesByLine, line, lineInts, lintData, parts, relPath, splitStr, totalCount, _i, _len, _ref;
+          lintData = scope.lintBundle.lints;
+          if (!_.has(lintData, scope.path)) {
             return;
           }
-          scope.data = scope.lintResults[scope.path];
+          scope.data = lintData[scope.path];
           issuesByLine = {};
           totalCount = 0;
           _ref = scope.data.issues;
@@ -296,10 +266,7 @@
           scope.sortedLines = lineInts.sort(function(a, b) {
             return a - b;
           });
-          splitStr = scope.acceptedLintPath;
-          if (splitStr.charAt(0 === '~')) {
-            splitStr = splitStr.substr(1);
-          }
+          splitStr = lintData.fullPath;
           relPath = scope.path.split(splitStr).pop();
           if (relPath.charAt(0) === '/') {
             relPath = relPath.substr(1);
@@ -334,7 +301,7 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"dim tiny save-details\">\n        {{m.path}}\n        <div class=\"pull-right\">\n            <span class=\"label label-primary\" ng-show=\"data.branchMode\">B</span>\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">Load</a>\n        </div>\n    </div>\n</div>",
+      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"tiny save-details\">\n        <span class=\"dim\">\n            {{m.path}}\n        </span>\n        <div class=\"pull-right highlight\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">\n                <span class=\"glyphicon glyphicon-arrow-right\"></span>\n            </a>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
         var frag;
         scope.m = {
@@ -446,12 +413,11 @@
       var data, lastRefresh, mins, now, path, paths, secs;
       for (path in pathsAndData) {
         data = pathsAndData[path];
-        Lints.issueCount(data);
-        $rootScope.lintResults[path] = data;
+        $rootScope.lintBundle.lints[path] = data;
       }
-      paths = _.keys($rootScope.lintResults);
+      paths = _.keys($rootScope.lintBundle.lints);
       $rootScope.sortedPaths = paths.sort(function(a, b) {
-        return Lints.issueCount($rootScope.lintResults[b]) - Lints.issueCount($rootScope.lintResults[a]);
+        return Lints.issueCount($rootScope.lintBundle.lints[b]) - Lints.issueCount($rootScope.lintBundle.lints[a]);
       });
       now = new Date();
       lastRefresh = now.getHours() + ':';
@@ -474,19 +440,33 @@
     $rootScope.loadSavePath = function(path) {
       return $rootScope.loadedSavePath = path;
     };
-    return $rootScope.resetLintResults = function() {
-      return $rootScope.lintResults = {};
+    $rootScope.resetLintBundle = function() {
+      return $rootScope.lintBundle = {
+        lints: {},
+        branchMode: false
+      };
+    };
+    $rootScope.updateLintBundle = function(properties) {
+      var key, value;
+      for (key in properties) {
+        value = properties[key];
+        $rootScope.lintBundle[key] = value;
+      }
+      return LocalStorage.saveLintBundle($rootScope.lintBundle);
+    };
+    return $rootScope.toggleBranchMode = function() {
+      return $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode;
     };
   });
 
-  angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage, SavedTarget) {
-    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath, updatePaths;
-    $rootScope.branchMode = false;
+  angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage) {
+    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath;
     $scope.showSubmitBtn = true;
     $scope.isPolling = false;
     $scope.pollCount = 0;
     $rootScope.acceptedLintPath = null;
     $scope.pendingPaths = [];
+    $rootScope.resetLintBundle();
     testPath = function(andAccept) {
       var deferred, path;
       if (andAccept == null) {
@@ -494,8 +474,9 @@
       }
       deferred = $q.defer();
       path = $scope.targetPathInput;
-      Api.testPath(path, $rootScope.branchMode).then(function(response) {
+      Api.testPath(path, $rootScope.lintBundle.branchMode).then(function(response) {
         $scope.pathExists = response.exists;
+        $scope.fullPath = response.path;
         $scope.targets = response.targets;
         if (!_.isUndefined(response.vcs)) {
           $scope.vcs = response.vcs;
@@ -509,20 +490,6 @@
       });
       return deferred.promise;
     };
-    updatePaths = function() {
-      if (!$rootScope.acceptedLintPath) {
-        return;
-      }
-      return Api.testPath($rootScope.acceptedLintPath, $rootScope.branchMode).then(function(response) {
-        var newPaths;
-        newPaths = _.without(response.targets, $rootScope.activePaths());
-        console.log('newPaths:', newPaths, $scope.pendingPaths);
-        $scope.pendingPaths = newPaths;
-        if ($scope.pendingPaths) {
-          return console.log('$scope.pendingPaths:', $scope.pendingPaths);
-        }
-      });
-    };
     stopPolling = function() {
       if ($scope.pollInterval) {
         clearInterval($scope.pollInterval);
@@ -530,18 +497,19 @@
       return $scope.isPolling = false;
     };
     showSaveBtn = function() {
-      return $scope.showSaveBtn = true;
+      $scope.showSaveBtn = true;
+      return $scope.showSubmitBtn = false;
     };
     hideSaveBtn = function() {
       return $scope.showSaveBtn = false;
     };
-    $scope.poll = function() {
+    $scope.startPolling = function() {
       stopPolling();
       $scope.pollInterval = setInterval(function() {
         var paths;
         paths = $rootScope.activePaths();
         if (paths.length > 0) {
-          Api.poll([$rootScope.acceptedLintPath], $rootScope.branchMode).then(function(response) {
+          Api.poll([$rootScope.acceptedLintPath], $rootScope.lintBundle.branchMode).then(function(response) {
             if (!_.isEmpty(response)) {
               return $rootScope.updateResults(response.changed);
             }
@@ -555,37 +523,39 @@
     };
     $scope.togglePolling = function() {
       if ($scope.isPolling) {
-        return stopPolling();
+        stopPolling();
       } else {
-        return $scope.poll();
+        $scope.startPolling();
       }
+      return $rootScope.updateLintBundle('isPolling', $scope.isPolling);
     };
     $scope.acceptPath = function() {
       if (!$scope.targets || $scope.targets.length === 0) {
-        console.log('here');
+        console.log('no targets; aborting');
         return;
       }
-      $scope.showSubmitBtn = false;
-      $scope.showSaveBtn = true;
-      $rootScope.acceptedLintPath = $scope.targetPathInput;
+      showSaveBtn();
+      $rootScope.updateLintBundle({
+        'inputPath': $scope.targetPathInput,
+        'fullPath': $scope.fullPath
+      });
       return Api.fullScan($scope.targets).then(function(response) {
-        $rootScope.updateResults(response);
-        return $scope.poll();
+        return $rootScope.updateResults(response);
       });
     };
     targetPathChange = function() {
       var path;
       stopPolling();
-      $rootScope.branchMode = false;
       path = $scope.targetPathInput;
       if (path) {
+        $rootScope.resetLintBundle();
         $scope.showSubmitBtn = true;
         return testPath();
       }
     };
     $scope.targetPathChange = _.throttle(targetPathChange, 1000);
     $scope.toggleBranchMode = function() {
-      $rootScope.branchMode = !$rootScope.branchMode;
+      $rootScope.toggleBranchMode();
       testPath(true);
       return showSaveBtn();
     };
@@ -600,13 +570,13 @@
       return hideSaveBtn();
     };
     loadSave = function(path) {
-      var save;
+      var savedBundle;
       if (!path) {
         return;
       }
-      $rootScope.resetLintResults();
-      save = LocalStorage.getSavedLintTarget(path);
-      $rootScope.branchMode = save.branchMode;
+      $rootScope.resetLintBundle();
+      savedBundle = LocalStorage.savedLintBundle(path);
+      $rootScope.lintBundle = savedBundle;
       $scope.targetPathInput = path;
       $rootScope.acceptedLintPath = path;
       testPath(true);
@@ -631,7 +601,7 @@
   angular.module(APP_NAME).controller('SavesCtrl', function($scope, $rootScope, LocalStorage) {
     var update;
     update = function() {
-      return $scope.saves = LocalStorage.savedLintTargets();
+      return $scope.saves = LocalStorage.savedLintBundles();
     };
     update();
     return LocalStorage.addListener(function() {

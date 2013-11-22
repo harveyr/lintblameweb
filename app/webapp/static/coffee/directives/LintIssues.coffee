@@ -48,13 +48,12 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
             </div>
         """
         link: (scope) ->
-            # pass
-
             scope.update = ->
-                if not _.has scope.lintResults, scope.path
+                lintData = scope.lintBundle.lints
+                if not _.has lintData, scope.path
                     return
 
-                scope.data = scope.lintResults[scope.path]
+                scope.data = lintData[scope.path]
 
                 issuesByLine = {}
                 totalCount = 0
@@ -78,9 +77,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 scope.sortedLines = lineInts.sort (a, b) ->
                     a - b
 
-                splitStr = scope.acceptedLintPath
-                if splitStr.charAt 0 == '~'
-                    splitStr = splitStr.substr(1)
+                splitStr = lintData.fullPath
                 relPath = scope.path.split(splitStr).pop()
                 if relPath.charAt(0) == '/'
                     relPath = relPath.substr(1)
@@ -89,18 +86,6 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 scope.pathTail = parts.pop()
                 scope.pathHead = parts.join('/')
 
-                # pathParts = scope.path.split('/')
-                # pathHead = ''
-                # scope.pathTail = pathParts.pop()
-                # while pathHead.length < 30
-                #     nextPart = pathParts.pop()
-                #     if _.isUndefined nextPart
-                #         break
-                #     pathHead = nextPart + "/#{pathHead}"
-                # if pathHead.length < scope.path.length - scope.pathTail.length
-                #     pathHead = '...' + pathHead
-                # scope.pathHead = pathHead.substr(1)
- 
             scope.blameLine = (line) ->
                 return scope.data.blame[line - 1]
 

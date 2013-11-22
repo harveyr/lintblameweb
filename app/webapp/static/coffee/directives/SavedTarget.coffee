@@ -9,10 +9,12 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
                     ng-change="saveNameChange()"
                     placeholder="Save Name">
 
-                <div class="dim tiny save-details">
-                    {{m.path}}
-                    <div class="pull-right">
-                        <span class="label label-primary" ng-show="data.branchMode">B</span>
+                <div class="tiny save-details">
+                    <span class="dim">
+                        {{m.path}}
+                    </span>
+                    <div class="pull-right highlight">
+                        Br
                     </div>
                 </div>
                 <div class="small actions">
@@ -20,7 +22,9 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
                         <span class="glyphicon glyphicon-remove-circle"></span>
                     </a>
                     <div class="pull-right">
-                        <a ng-click="loadSavePath(path)">Load</a>
+                        <a ng-click="loadSavePath(path)">
+                            <span class="glyphicon glyphicon-arrow-right"></span>
+                        </a>
                     </div>
                 </div>
             </div>

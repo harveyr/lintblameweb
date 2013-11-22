@@ -10,6 +10,10 @@ body {
     color: $fontColor;
 }
 
+input, input.form-control {
+    border: 1px solid #444;
+}
+
 a {
     &:hover, &.active:hover, &.inactive:hover {
         color: $fontColor;
@@ -44,6 +48,14 @@ a {
             color: $fontColor;
         }
     }
+}
+
+.xtradim {
+    color: $xtradim;
+}
+
+.highlight {
+    color: $orange;
 }
 
 .text-shadow {
@@ -111,7 +123,6 @@ a {
     input {
         height: 24px;
         font-size: 12px;
-        border: 1px solid #444;
         color: $dim;
     }
 
@@ -125,9 +136,6 @@ a {
 }
 
 .lint-issues {
-
-    @extend .text-shadow;
-    
     margin-top: 5px;
 
     table {
@@ -139,6 +147,10 @@ a {
         font-size: 12px;
     }
 
+    .label {
+        @extend .text-shadow;
+    }
+    
     .path {
         padding: 4px 4px 6px 4px;
         border-radius: 3px;
@@ -156,6 +168,7 @@ a {
             color: $dim;
         }
         .tail {
+            @extend .text-shadow;
             font-weight: bold;
         }
     }

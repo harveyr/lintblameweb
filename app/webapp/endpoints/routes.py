@@ -87,6 +87,7 @@ def _get_results(path):
     result = {}
     with open(path, 'r') as f:
         result['lines'] = f.read().splitlines()
+
     result['blame'] = git.blame(path)
     result['issues'] = []
     if path.endswith('.py'):
@@ -103,7 +104,7 @@ def fullscan():
     joined_paths = request.args.get('paths')
     if not joined_paths:
         abort(404)
-    paths = joined_paths.split(',')
+    paths = [p for p in joined_paths.split(',') if os.path.exists(p)]
     response = defaultdict(dict)
     for p in paths:
         response[p] = _get_results(p)
@@ -127,7 +128,7 @@ def poll_paths():
     for p in poll_paths:
         mod = os.path.getmtime(p)
 
-        if mod > since:
+        if mod + 2 > since:
             response['changed'][p] = _get_results(p)
 
     if branch_mode:

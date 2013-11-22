@@ -65,12 +65,14 @@ app = angular.module(APP_NAME, [
 
     $rootScope.updateResults = (pathsAndData) ->
         for path, data of pathsAndData
-            Lints.issueCount data
-            $rootScope.lintResults[path] = data
+            $rootScope.lintBundle.lints[path] = data
 
-        paths = _.keys $rootScope.lintResults
+        paths = _.keys $rootScope.lintBundle.lints
         $rootScope.sortedPaths = paths.sort (a, b) ->
-            return Lints.issueCount($rootScope.lintResults[b]) - Lints.issueCount($rootScope.lintResults[a])
+            return (
+                Lints.issueCount($rootScope.lintBundle.lints[b]) -
+                Lints.issueCount($rootScope.lintBundle.lints[a])
+            )
 
         now = new Date()
         lastRefresh = now.getHours() + ':'
@@ -84,14 +86,26 @@ app = angular.module(APP_NAME, [
         lastRefresh += secs
         $rootScope.lastRefresh = lastRefresh
 
-        # updateFavicon()
-
+    # Deleting soon?
     $rootScope.deletePath = (path) ->
         console.log "DELETING #{path}"
         delete $rootScope.lintResults[path]
 
+    # Deleting soon?
     $rootScope.loadSavePath = (path) ->
         $rootScope.loadedSavePath = path
 
-    $rootScope.resetLintResults = ->
-        $rootScope.lintResults = {}
+    $rootScope.resetLintBundle = ->
+        $rootScope.lintBundle = {
+            lints: {}
+            branchMode: false
+        }
+
+    $rootScope.updateLintBundle = (properties) ->
+        for key, value of properties
+            $rootScope.lintBundle[key] = value
+        LocalStorage.saveLintBundle $rootScope.lintBundle
+
+    $rootScope.toggleBranchMode = ->
+        $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode
+

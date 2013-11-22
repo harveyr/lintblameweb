@@ -2,6 +2,9 @@ body {
   background-color: #26292c;
   color: #f2f2f2; }
 
+input, input.form-control {
+  border: 1px solid #444; }
+
 a:hover, a.active:hover, a.inactive:hover {
   color: #f2f2f2;
   text-decoration: none;
@@ -24,7 +27,13 @@ a.danger:hover {
   .dim.hover-bright:hover, .lint-issues .hover-bright.reporter:hover {
     color: #f2f2f2; }
 
-.text-shadow, .lint-issues {
+.xtradim {
+  color: #8c8c8c; }
+
+.highlight {
+  color: #f59120; }
+
+.text-shadow, .lint-issues .label, .lint-issues .path .tail {
   text-shadow: 1px 1px #000; }
 
 .content-wrapper {
@@ -69,7 +78,6 @@ a.danger:hover {
   .saved-target input {
     height: 24px;
     font-size: 12px;
-    border: 1px solid #444;
     color: #b3b3b3; }
   .saved-target .save-details {
     margin-top: 6px; }

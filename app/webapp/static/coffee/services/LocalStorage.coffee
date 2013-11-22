@@ -1,7 +1,7 @@
-angular.module(SERVICE_MODULE).service 'LocalStorage', (SavedTarget) ->
+angular.module(SERVICE_MODULE).service 'LocalStorage', () ->
     class LocalStorage
         STORAGE_KEY: 'lintblame'
-        SAVED_TARGETS_KEY: 'saves'
+        SAVED_BUNDLES_KEY: 'saves'
 
         listeners: []
 
@@ -21,44 +21,39 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', (SavedTarget) ->
                 return all
             all[key]
 
-        savedLintTargets: ->
-            @get @SAVED_TARGETS_KEY
-
-        updateSavedLintTargets: (saved) ->
-            @setAttr @SAVED_TARGETS_KEY, saved
+        _setSavedLintBundles: (saved) ->
+            @setAttr @SAVED_BUNDLES_KEY, saved
             
+        savedLintBundles: ->
+            @get @SAVED_BUNDLES_KEY
 
-        saveLintTarget: (saveTarget) ->
-            currentSaved = @get @SAVED_TARGETS_KEY
-            path = saveTarget.path
+        saveLintBundle: (lintBundle) ->
+            currentSaved = @get @SAVED_BUNDLES_KEY
+            path = lintBundle.fullPath
             if not path
-                throw "Bad path: #{path}"
-            saveTarget.setUpdated()
-            currentSaved[path] = saveTarget.toObj()
-            @updateSavedLintTargets currentSaved
+                throw "LocalStorage.saveLintBundle(): Bad path: #{path}"
+            lintBundle.updated = Date.now()
+            currentSaved[path] = lintBundle
+            @_setSavedLintBundles currentSaved
 
-        getSavedLintTarget: (path) ->
-            saved = @savedLintTargets()
-            if _.has saved, path
-                target = new SavedTarget(saved[path])
-                return target
-            throw "#{path} is not saved!"
+        savedLintBundle: (path) ->
+            @savedLintBundles()[path]
 
         setSaveName: (path, name) ->
-            target = @getSavedLintTarget path
-            target.saveName = name
-            @saveLintTarget target
+            bundle = @savedLintBundle path
+            bundle.saveName = name
+            @saveLintBundle bundle
 
         deleteSave: (path) ->
             saved = @savedLintTargets()
             if _.has saved, path
                 delete saved[path]
-            @updateSavedLintTargets saved
+            @_setSavedLintBundles saved
 
         resetAppStorage: ->
             console.log 'resetting app storage'
             defaultState = {}
-            defaultState[@SAVED_TARGETS_KEY] = {}
+            defaultState[@SAVED_BUNDLES_KEY] = {}
             @set defaultState
 
         initIfNecessary: ->
