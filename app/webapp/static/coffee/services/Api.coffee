@@ -1,6 +1,7 @@
 angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
     class Api
-        lastUpdate: null
+        lastUpdate: Date.now()
+        pendingPoll: false
 
         scan: ->
             return 'blah'
@@ -40,23 +41,33 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
                 $rootScope.setLoading(false)
             deferred.promise
 
-        poll: (paths, branchMode=false) ->
+        poll: (paths, branchMode=false, fullScan=false) ->
             deferred = $q.defer()
 
-            request = $http {
-                url: '/api/poll'
-                method: 'get'
-                params:
+            if @pendingPoll
+                deferred.resolve({})
+            else
+                @pendingPoll = true
+                params =
                     since: @lastUpdate
                     paths: paths.join(',')
                     branch: branchMode
-                cache: false
-            }
+                if fullScan
+                    params.fullScan = true
 
-            request.success (response) =>
-                if not _.isEmpty response
-                    @lastUpdate = Date.now()
-                deferred.resolve response
+                request = $http {
+                    url: '/api/poll'
+                    method: 'get'
+                    params: params
+                    cache: false
+                }
+
+                request.success (response) =>
+                    if not _.isEmpty response
+                        @lastUpdate = Date.now()
+                    deferred.resolve response
+                    @pendingPoll = false
+
             return deferred.promise
 
     new Api()

@@ -33,6 +33,9 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', () ->
             if not path
                 throw "LocalStorage.saveLintBundle(): Bad path: #{path}"
             lintBundle.updated = Date.now()
+
+            saveBundle = _.extend {}, lintBundle
+            delete saveBundle['lints']
             currentSaved[path] = lintBundle
             @_setSavedLintBundles currentSaved
 
@@ -45,7 +48,7 @@ angular.module(SERVICE_MODULE).service 'LocalStorage', () ->
             @saveLintBundle bundle
 
         deleteSave: (path) ->
-            saved = @savedLintTargets()
+            saved = @savedLintBundles()
             if _.has saved, path
                 delete saved[path]
             @_setSavedLintBundles saved

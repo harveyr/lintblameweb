@@ -57,6 +57,9 @@ a.danger:hover {
   .menu-row .input-wrapper {
     width: 80%; }
 
+.menu-wrapper {
+  margin-bottom: 20px; }
+
 .submenu-row {
   margin-top: 10px;
   font-size: 11px; }

@@ -26,7 +26,9 @@
     Api = (function() {
       function Api() {}
 
-      Api.prototype.lastUpdate = null;
+      Api.prototype.lastUpdate = Date.now();
+
+      Api.prototype.pendingPoll = false;
 
       Api.prototype.scan = function() {
         return 'blah';
@@ -80,29 +82,42 @@
         return deferred.promise;
       };
 
-      Api.prototype.poll = function(paths, branchMode) {
-        var deferred, request,
+      Api.prototype.poll = function(paths, branchMode, fullScan) {
+        var deferred, params, request,
           _this = this;
         if (branchMode == null) {
           branchMode = false;
         }
+        if (fullScan == null) {
+          fullScan = false;
+        }
         deferred = $q.defer();
-        request = $http({
-          url: '/api/poll',
-          method: 'get',
-          params: {
+        if (this.pendingPoll) {
+          deferred.resolve({});
+        } else {
+          this.pendingPoll = true;
+          params = {
             since: this.lastUpdate,
             paths: paths.join(','),
             branch: branchMode
-          },
-          cache: false
-        });
-        request.success(function(response) {
-          if (!_.isEmpty(response)) {
-            _this.lastUpdate = Date.now();
+          };
+          if (fullScan) {
+            params.fullScan = true;
           }
-          return deferred.resolve(response);
-        });
+          request = $http({
+            url: '/api/poll',
+            method: 'get',
+            params: params,
+            cache: false
+          });
+          request.success(function(response) {
+            if (!_.isEmpty(response)) {
+              _this.lastUpdate = Date.now();
+            }
+            deferred.resolve(response);
+            return _this.pendingPoll = false;
+          });
+        }
         return deferred.promise;
       };
 
@@ -173,13 +188,15 @@
       };
 
       LocalStorage.prototype.saveLintBundle = function(lintBundle) {
-        var currentSaved, path;
+        var currentSaved, path, saveBundle;
         currentSaved = this.get(this.SAVED_BUNDLES_KEY);
         path = lintBundle.fullPath;
         if (!path) {
           throw "LocalStorage.saveLintBundle(): Bad path: " + path;
         }
         lintBundle.updated = Date.now();
+        saveBundle = _.extend({}, lintBundle);
+        delete saveBundle['lints'];
         currentSaved[path] = lintBundle;
         return this._setSavedLintBundles(currentSaved);
       };
@@ -197,7 +214,7 @@
 
       LocalStorage.prototype.deleteSave = function(path) {
         var saved;
-        saved = this.savedLintTargets();
+        saved = this.savedLintBundles();
         if (_.has(saved, path)) {
           delete saved[path];
         }
@@ -356,11 +373,11 @@
   });
 
   app = angular.module(APP_NAME, ["" + APP_NAME + ".services", "" + APP_NAME + ".directives"]).run(function($rootScope, Api, Lints, LocalStorage) {
-    var spinOpts, updateFavicon;
+    var updateFavicon;
     $rootScope.appName = "lintblame";
     $rootScope.lintResults = {};
     LocalStorage.initIfNecessary();
-    spinOpts = {
+    $rootScope.loadingSpinner = new Spinner({
       lines: 10,
       length: 5,
       width: 2,
@@ -377,26 +394,25 @@
       zIndex: 2e9,
       top: '0',
       left: '0'
-    };
-    $rootScope.loadingSpinner = new Spinner(spinOpts);
-    $rootScope.isSpinning = false;
+    });
+    $rootScope.isLoading = false;
     $rootScope.setLoading = function(val) {
       var target;
       if (val) {
-        if (!$rootScope.isSpinning) {
+        if (!$rootScope.isLoading) {
           target = document.getElementById('loading');
-          return $rootScope.loadingSpinner.spin(target);
+          $rootScope.loadingSpinner.spin(target);
         }
       } else {
-        return $rootScope.loadingSpinner.stop();
+        $rootScope.loadingSpinner.stop();
       }
+      return $rootScope.isLoading = val;
     };
     $rootScope.activePaths = function() {
-      console.log('$rootScope.lintResults:', $rootScope.lintResults);
-      if (!$rootScope.lintResults) {
+      if (!$rootScope.lintBundle.fullPath) {
         return [];
       }
-      return _.keys($rootScope.lintResults);
+      return _.keys($rootScope.lintBundle.lints);
     };
     updateFavicon = function() {
       var count, data, path, _ref, _results;
@@ -411,6 +427,7 @@
     };
     $rootScope.updateResults = function(pathsAndData) {
       var data, lastRefresh, mins, now, path, paths, secs;
+      console.log('pathsAndData:', pathsAndData);
       for (path in pathsAndData) {
         data = pathsAndData[path];
         $rootScope.lintBundle.lints[path] = data;
@@ -433,10 +450,6 @@
       lastRefresh += secs;
       return $rootScope.lastRefresh = lastRefresh;
     };
-    $rootScope.deletePath = function(path) {
-      console.log("DELETING " + path);
-      return delete $rootScope.lintResults[path];
-    };
     $rootScope.loadSavePath = function(path) {
       return $rootScope.loadedSavePath = path;
     };
@@ -446,16 +459,17 @@
         branchMode: false
       };
     };
-    $rootScope.updateLintBundle = function(properties) {
+    $rootScope.saveCurrentBundle = function() {
+      return LocalStorage.saveLintBundle($rootScope.lintBundle);
+    };
+    return $rootScope.updateLintBundle = function(properties) {
       var key, value;
+      console.log('updatelintbundle properties:', properties);
       for (key in properties) {
         value = properties[key];
         $rootScope.lintBundle[key] = value;
       }
-      return LocalStorage.saveLintBundle($rootScope.lintBundle);
-    };
-    return $rootScope.toggleBranchMode = function() {
-      return $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode;
+      return $rootScope.saveCurrentBundle();
     };
   });
 
@@ -506,16 +520,19 @@
     $scope.startPolling = function() {
       stopPolling();
       $scope.pollInterval = setInterval(function() {
-        var paths;
-        paths = $rootScope.activePaths();
-        if (paths.length > 0) {
-          Api.poll([$rootScope.acceptedLintPath], $rootScope.lintBundle.branchMode).then(function(response) {
+        var fullScan, thresholdPaths;
+        thresholdPaths = $scope.targets;
+        fullScan = thresholdPaths.length && !$rootScope.activePaths().length;
+        if (thresholdPaths.length > 0) {
+          $rootScope.noPaths = false;
+          Api.poll([$rootScope.lintBundle.fullPath], $rootScope.lintBundle.branchMode, fullScan).then(function(response) {
             if (!_.isEmpty(response)) {
               return $rootScope.updateResults(response.changed);
             }
           });
           return $scope.pollCount += 1;
         } else {
+          $rootScope.noPaths = true;
           return console.log('not polling because no paths');
         }
       }, 2000);
@@ -527,7 +544,10 @@
       } else {
         $scope.startPolling();
       }
-      return $rootScope.updateLintBundle('isPolling', $scope.isPolling);
+      $scope.isPolling = !$scope.isPolling;
+      return $rootScope.updateLintBundle({
+        'isPolling': $scope.isPolling
+      });
     };
     $scope.acceptPath = function() {
       if (!$scope.targets || $scope.targets.length === 0) {
@@ -539,9 +559,7 @@
         'inputPath': $scope.targetPathInput,
         'fullPath': $scope.fullPath
       });
-      return Api.fullScan($scope.targets).then(function(response) {
-        return $rootScope.updateResults(response);
-      });
+      return $scope.startPolling();
     };
     targetPathChange = function() {
       var path;
@@ -555,9 +573,8 @@
     };
     $scope.targetPathChange = _.throttle(targetPathChange, 1000);
     $scope.toggleBranchMode = function() {
-      $rootScope.toggleBranchMode();
-      testPath(true);
-      return showSaveBtn();
+      $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode;
+      return testPath(true);
     };
     $scope.saveState = function() {
       var properties, save;
@@ -576,6 +593,7 @@
       }
       $rootScope.resetLintBundle();
       savedBundle = LocalStorage.savedLintBundle(path);
+      console.log('savedBundle:', savedBundle);
       $rootScope.lintBundle = savedBundle;
       $scope.targetPathInput = path;
       $rootScope.acceptedLintPath = path;

@@ -8,7 +8,7 @@ app = angular.module(APP_NAME, [
 
     LocalStorage.initIfNecessary()
 
-    spinOpts =
+    $rootScope.loadingSpinner = new Spinner({
         lines: 10, # The number of lines to draw
         length: 5, # The length of each line
         width: 2, # The line thickness
@@ -24,23 +24,23 @@ app = angular.module(APP_NAME, [
         className: 'spinner', # The CSS class to assign to the spinner
         zIndex: 2e9, # The z-index (defaults to 2000000000)
         top: '0', # Top position relative to parent in px
-        left: '0' # Left position relative to parent in px
-    $rootScope.loadingSpinner = new Spinner(spinOpts)
-    $rootScope.isSpinning = false
+        left: '0' # Left position relative to parent in px    
+    })
+    $rootScope.isLoading = false
+    
     $rootScope.setLoading = (val) ->
         if val
-            if !$rootScope.isSpinning
+            if !$rootScope.isLoading
                 target = document.getElementById 'loading'
                 $rootScope.loadingSpinner.spin(target)
         else
             $rootScope.loadingSpinner.stop()
-        
+        $rootScope.isLoading = val
 
     $rootScope.activePaths = ->
-        console.log '$rootScope.lintResults:', $rootScope.lintResults
-        if not $rootScope.lintResults
+        if not $rootScope.lintBundle.fullPath
             return []
-        return _.keys $rootScope.lintResults
+        return _.keys $rootScope.lintBundle.lints
 
     updateFavicon = ->
         count = 0
@@ -64,6 +64,7 @@ app = angular.module(APP_NAME, [
         #   img.src = 'image.png';
 
     $rootScope.updateResults = (pathsAndData) ->
+        console.log 'pathsAndData:', pathsAndData
         for path, data of pathsAndData
             $rootScope.lintBundle.lints[path] = data
 
@@ -86,12 +87,6 @@ app = angular.module(APP_NAME, [
         lastRefresh += secs
         $rootScope.lastRefresh = lastRefresh
 
-    # Deleting soon?
-    $rootScope.deletePath = (path) ->
-        console.log "DELETING #{path}"
-        delete $rootScope.lintResults[path]
-
-    # Deleting soon?
     $rootScope.loadSavePath = (path) ->
         $rootScope.loadedSavePath = path
 
@@ -101,11 +96,14 @@ app = angular.module(APP_NAME, [
             branchMode: false
         }
 
+    $rootScope.saveCurrentBundle = ->
+        LocalStorage.saveLintBundle $rootScope.lintBundle
+        
+
     $rootScope.updateLintBundle = (properties) ->
+        console.log 'updatelintbundle properties:', properties
         for key, value of properties
             $rootScope.lintBundle[key] = value
-        LocalStorage.saveLintBundle $rootScope.lintBundle
+        $rootScope.saveCurrentBundle()
 
-    $rootScope.toggleBranchMode = ->
-        $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode
-
+    # LocalStorage.resetAppStorage()

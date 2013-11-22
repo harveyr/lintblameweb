@@ -118,8 +118,12 @@ def poll_paths():
     if branch_mode and branch_mode.lower() != 'false':
         poll_paths = [p for p in git.git_branch_files(request_paths[0])]
     else:
-        logger.info('here!')
         poll_paths = get_path_targets(request_paths[0])
+
+    full_scan = request.args.get('fullScan', False)
+    logger.info('full_scan: {0}'.format(full_scan))
+    full_scan = full_scan and full_scan != 'false'
+    logger.info('full_scan: {0}'.format(full_scan))
 
     since = float(int(request.args.get('since')) / 1000)
     response = {
@@ -128,7 +132,7 @@ def poll_paths():
     for p in poll_paths:
         mod = os.path.getmtime(p)
 
-        if mod + 2 > since:
+        if full_scan or mod + 2 > since:
             response['changed'][p] = _get_results(p)
 
     if branch_mode:

@@ -16,7 +16,7 @@
   </head>
 
   <body>
-  {% raw %}
+    {% raw %}
     <div class="content-wrapper">
         <div class="row"> <!-- Parent row -->       
             <div class="col-md-2 col-sm-3 col-xs-4">
@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="col-sm-9 col-md-10 col-xs-8">
-                <div ng-controller="MenuCtrl">
+                <div ng-controller="MenuCtrl" class="menu-wrapper">
                     <div class="row">
                         <div class="col-sm-11 col-xs-9">
                             <div class="input-wrapper">
@@ -43,7 +43,7 @@
                         <div class="col-sm-1 col-xs-2">
                             <div>
                                 <button class="btn btn-success btn-xs"
-                                    ng-show="showSubmitBtn"
+                                    ng-show="showSubmitBtn && targetPathInput.length"
                                     ng-click="acceptPath()"
                                 >
                                     Okay!
@@ -58,12 +58,12 @@
                         <div ng-show="pathExists && vcs">
                             <a 
                                 ng-click="toggleBranchMode()"
-                                ng-class="{active: branchMode, inactive: !branchMode}"
+                                ng-class="{active: lintBundle.branchMode, inactive: !lintBundle.branchMode}"
                             >
                                 {{branch}}
                             </a>
                         </div>
-                        <div ng-show="pollCount">
+                        <div ng-show="lintBundle.fullPath">
                             <a ng-click="togglePolling()"
                                 ng-class="{active: isPolling, inactive: !isPolling}"
                             >
@@ -74,10 +74,8 @@
                                 Polling
                             </a>
                         </div>
-                        <div class="pull-right dim">
-                            <span ng-show="lastRefresh">
-                                Updated {{lastRefresh}}
-                            </span>
+                        <div class="pull-right dim" ng-show="lastRefresh">
+                            Updated {{lastRefresh}}
                         </div>
                     </div>
                 </div>
@@ -86,11 +84,19 @@
                         <div ng-repeat="path in sortedPaths" lint-issues></div>
                     </div>
                 </div>
+                <div ng-show="!lintBundle.lints.length">
+                    <div class="code">
+                        <span ng-show="!lintBundle.fullPath">
+                            Enter a path.
+                        </span>
+                        <span ng-show="lintBundle.fullPath">
+                            No modified files were found.
+                        </span>
+                    </div>
+                </div>
             </div>
         </div>
     </div> <!-- /container -->
-
-
     {% endraw %}
 
     <!-- Bootstrap core JavaScript

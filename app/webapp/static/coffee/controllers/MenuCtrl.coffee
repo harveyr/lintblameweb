@@ -40,11 +40,15 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
         stopPolling()
 
         $scope.pollInterval = setInterval ->
-            paths = $rootScope.activePaths()
-            if paths.length > 0
+            thresholdPaths = $scope.targets
+
+            fullScan = thresholdPaths.length and !$rootScope.activePaths().length
+            if thresholdPaths.length > 0
+                $rootScope.noPaths = false
                 Api.poll(
-                    [$rootScope.acceptedLintPath],
-                    $rootScope.lintBundle.branchMode
+                    [$rootScope.lintBundle.fullPath],
+                    $rootScope.lintBundle.branchMode,
+                    fullScan
                 ).then (response) ->
                     if not _.isEmpty response
                         $rootScope.updateResults response.changed
@@ -54,6 +58,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
                         #         $rootScope.deletePath p
                 $scope.pollCount += 1
             else
+                $rootScope.noPaths = true
                 console.log 'not polling because no paths'
         , 2000
         $scope.isPolling = true
@@ -63,7 +68,8 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             stopPolling()
         else
             $scope.startPolling()
-        $rootScope.updateLintBundle 'isPolling', $scope.isPolling
+        $scope.isPolling = !$scope.isPolling
+        $rootScope.updateLintBundle {'isPolling': $scope.isPolling}
 
     $scope.acceptPath = ->
         if !$scope.targets or $scope.targets.length == 0
@@ -74,9 +80,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             'inputPath': $scope.targetPathInput
             'fullPath': $scope.fullPath
         }
-
-        Api.fullScan($scope.targets).then (response) ->
-            $rootScope.updateResults response
+        $scope.startPolling()
 
     targetPathChange = ->
         stopPolling()
@@ -89,9 +93,9 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
 
     $scope.toggleBranchMode = ->
-        $rootScope.toggleBranchMode()
+        $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode
         testPath(true)
-        showSaveBtn()
+
 
     $scope.saveState = ->
         properties = 
@@ -106,6 +110,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             return
         $rootScope.resetLintBundle()
         savedBundle = LocalStorage.savedLintBundle path
+        console.log 'savedBundle:', savedBundle
         $rootScope.lintBundle = savedBundle
         $scope.targetPathInput = path
         $rootScope.acceptedLintPath = path
