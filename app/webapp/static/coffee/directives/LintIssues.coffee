@@ -3,17 +3,25 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
         replace: true
         template: """
             <div class="lint-issues" ng-class="{demoted: demotions[path]}">
-                <div class="path">
+                <div class="path hover-parent">
                     
                     <span class="label {{countClass}}">
                         <span class="glyphicon {{countIcon}}"></span>
                     </span>
-                        &nbsp;
+                    
+                    &nbsp;
+                    
                     <span class="path-parts">
                         <span class="head">{{pathHead}}/</span><span class="tail">{{pathTail}}</span>
                     </span>
+                        
+                    &nbsp;
 
-                    <div class="pull-right demotion-options">
+                    <a ng-click="copyPath()" class="hover-target-inbl">
+                        <span class="glyphicon glyphicon-open"></span>
+                    </a>
+    
+                    <div class="pull-right demotion-options hover-target">
                         <a ng-click="demote(path)">
                             <span ng-show="!demotions[path]"
                                 class="glyphicon glyphicon-minus-sign dim hover-bright">
@@ -106,3 +114,8 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
 
             scope.demote = (path) ->
                 scope.$emit 'demote', path
+
+
+            scope.copyPath = ->
+                window.prompt "Copy to clipboard: Ctrl+C, Enter", 
+                    (scope.lintBundle.fullPath + '/' + scope.pathTail)

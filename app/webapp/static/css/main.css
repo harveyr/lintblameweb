@@ -41,6 +41,13 @@ a.danger:hover {
 .text-shadow, .lint-issues .label, .lint-issues .path .tail, .lint-issues .blame.blame-me {
   text-shadow: 1px 1px #000; }
 
+.hover-parent:hover .hover-target {
+  display: block; }
+.hover-parent:hover .hover-target-inbl {
+  display: inline-block; }
+.hover-parent .hover-target, .hover-parent .hover-target-inbl {
+  display: none; }
+
 .content-wrapper {
   margin: 20px 20px 20px 10px;
   padding: 0 15px; }

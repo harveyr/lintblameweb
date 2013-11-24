@@ -69,6 +69,15 @@ a {
     text-shadow: 1px 1px #000;
 }
 
+.hover-parent {
+    &:hover {
+        .hover-target { display: block; }
+        .hover-target-inbl { display: inline-block; }
+    }
+
+    .hover-target, .hover-target-inbl { display: none; }
+}
+
 .content-wrapper {
     margin: 20px 20px 20px 10px;
     padding: 0 15px;
