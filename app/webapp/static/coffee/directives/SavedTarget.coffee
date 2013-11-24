@@ -13,7 +13,7 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
                     <span class="dim">
                         {{m.path}}
                     </span>
-                    <div class="pull-right highlight">
+                    <div class="pull-right highlight" ng-show="m.bundle.branchMode">
                         Br
                     </div>
                 </div>
@@ -40,8 +40,18 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
             if _.has scope.data, 'saveName'
                 scope.m.saveName = scope.data.saveName
 
+            update = ->
+                scope.m.bundle = LocalStorage.savedLintBundle scope.path
+                if not scope.m.bundle
+                    throw "Unable to get saved bundle for path #{scope.path}"
+
             scope.saveNameChange = ->
                 LocalStorage.setSaveName scope.path, scope.m.saveName
 
             scope.deleteSave = ->
                 LocalStorage.deleteSave scope.path                
+
+            update()
+
+            LocalStorage.addListener ->
+                update()

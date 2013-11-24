@@ -323,9 +323,9 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"tiny save-details\">\n        <span class=\"dim\">\n            {{m.path}}\n        </span>\n        <div class=\"pull-right highlight\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">\n                <span class=\"glyphicon glyphicon-arrow-right\"></span>\n            </a>\n        </div>\n    </div>\n</div>",
+      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"tiny save-details\">\n        <span class=\"dim\">\n            {{m.path}}\n        </span>\n        <div class=\"pull-right highlight\" ng-show=\"m.bundle.branchMode\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">\n                <span class=\"glyphicon glyphicon-arrow-right\"></span>\n            </a>\n        </div>\n    </div>\n</div>",
       link: function(scope) {
-        var frag;
+        var frag, update;
         scope.m = {
           path: scope.path
         };
@@ -336,12 +336,22 @@
         if (_.has(scope.data, 'saveName')) {
           scope.m.saveName = scope.data.saveName;
         }
+        update = function() {
+          scope.m.bundle = LocalStorage.savedLintBundle(scope.path);
+          if (!scope.m.bundle) {
+            throw "Unable to get saved bundle for path " + scope.path;
+          }
+        };
         scope.saveNameChange = function() {
           return LocalStorage.setSaveName(scope.path, scope.m.saveName);
         };
-        return scope.deleteSave = function() {
+        scope.deleteSave = function() {
           return LocalStorage.deleteSave(scope.path);
         };
+        update();
+        return LocalStorage.addListener(function() {
+          return update();
+        });
       }
     };
   });
@@ -578,6 +588,7 @@
     $scope.targetPathChange = _.throttle(targetPathChange, 1000);
     $scope.toggleBranchMode = function() {
       $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode;
+      $rootScope.saveCurrentBundle();
       return testPath(true);
     };
     $scope.saveState = function() {

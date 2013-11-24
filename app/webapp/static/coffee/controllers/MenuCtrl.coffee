@@ -93,6 +93,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     $scope.toggleBranchMode = ->
         $rootScope.lintBundle.branchMode = !$rootScope.lintBundle.branchMode
+        $rootScope.saveCurrentBundle()
         testPath(true)
 
 

@@ -98,7 +98,6 @@ app = angular.module(APP_NAME, [
 
     $rootScope.saveCurrentBundle = ->
         LocalStorage.saveLintBundle $rootScope.lintBundle
-        
 
     $rootScope.updateLintBundle = (properties) ->
         console.log 'updatelintbundle properties:', properties
