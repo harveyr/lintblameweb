@@ -35,10 +35,10 @@ a.danger:hover {
 
 .inv {
   color: black; }
-  .inv.text-shadow, .lint-issues .inv.label, .lint-issues .path .inv.tail {
+  .inv.text-shadow, .lint-issues .inv.label, .lint-issues .path .inv.tail, .lint-issues .inv.blame.blame-me {
     text-shadow: 1px 1px #fff; }
 
-.text-shadow, .lint-issues .label, .lint-issues .path .tail {
+.text-shadow, .lint-issues .label, .lint-issues .path .tail, .lint-issues .blame.blame-me {
   text-shadow: 1px 1px #000; }
 
 .content-wrapper {
@@ -78,6 +78,9 @@ a.danger:hover {
   height: 24px;
   font-size: 12px; }
 
+.saves-wrapper {
+  margin-top: 6px; }
+
 .saved-target {
   background-color: #1f2124;
   padding: 8px;
@@ -115,6 +118,9 @@ a.danger:hover {
       font-weight: bold; }
   .lint-issues.demoted {
     opacity: 0.3; }
+  .lint-issues .demotion-options a {
+    position: relative;
+    top: 4px; }
   .lint-issues .line-wrapper {
     padding-left: 30px;
     margin: 10px 0 10px 0; }
@@ -132,7 +138,8 @@ a.danger:hover {
   .lint-issues .blame {
     color: #84bcde; }
     .lint-issues .blame.blame-me {
-      color: #fb292d; }
+      color: #fb292d;
+      font-weight: bold; }
 
 code, .code {
   color: #f59120;

@@ -13,13 +13,13 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                         <span class="head">{{pathHead}}/</span><span class="tail">{{pathTail}}</span>
                     </span>
 
-                    <div class="pull-right">
+                    <div class="pull-right demotion-options">
                         <a ng-click="demote(path)">
                             <span ng-show="!demotions[path]"
-                                class="glyphicon glyphicon-thumbs-down dim hover-bright">
+                                class="glyphicon glyphicon-minus-sign dim hover-bright">
                             </span>
                             <span ng-show="demotions[path]"
-                                class="glyphicon glyphicon-thumbs-up dim hover-bright">
+                                class="glyphicon glyphicon-plus-sign dim hover-bright">
                             </span>
                         </a>
                     </div>
