@@ -4,7 +4,10 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
         template: """
             <div class="lint-issues" ng-class="{demoted: demotions[path]}">
                 <div class="path">
-                    <span class="label {{countClass}}">{{totalCount}}</span>
+                    
+                    <span class="label {{countClass}}">
+                        <span class="glyphicon {{countIcon}}"></span>
+                    </span>
                         &nbsp;
                     <span class="path-parts">
                         <span class="head">{{pathHead}}/</span><span class="tail">{{pathTail}}</span>
@@ -22,7 +25,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                     </div>
                 </div>
                 <div ng-repeat="line in sortedLines" class="line-wrapper" ng-show="!demotions[path]">
-                    <div class="line">
+                    <div class="label label-warning line">
                         {{line}}
                     </div>
                     <div class="detail">
@@ -31,12 +34,12 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                         </code>
                         <table>
                             <tr ng-repeat="issue in issuesByLine[line]" class="issue">
+                                <td class="{{blameClass(line)}}">
+                                    [{{blameLine(issue.line)}}]
+                                </td>
                                 <td class="reporter">
                                     {{issue.reporter}}
                                     {{issue.code}}
-                                </td>
-                                <td class="{{blameClass(line)}}">
-                                    [{{blameLine(issue.line)}}]
                                 </td>
                                 <td>
                                     {{issue.message}}
@@ -68,9 +71,11 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 scope.totalCount = totalCount
 
                 if totalCount
-                    scope.countClass = 'label-warning'
+                    scope.countClass = 'label-danger'
+                    scope.countIcon = 'glyphicon-thumbs-down'
                 else
                     scope.countClass = 'label-success'
+                    scope.countIcon = 'glyphicon-thumbs-up'
 
                 lineInts = _.map issuesByLine, (issue, line) ->
                     parseInt(line, 10)

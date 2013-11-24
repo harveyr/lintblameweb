@@ -33,6 +33,11 @@ a.danger:hover {
 .highlight {
   color: #f59120; }
 
+.inv {
+  color: black; }
+  .inv.text-shadow, .lint-issues .inv.label, .lint-issues .path .inv.tail {
+    text-shadow: 1px 1px #fff; }
+
 .text-shadow, .lint-issues .label, .lint-issues .path .tail {
   text-shadow: 1px 1px #000; }
 
