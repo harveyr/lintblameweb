@@ -8,6 +8,7 @@ BLAME_NAME_REX = re.compile(r'\(([\w\s]+)\d{4}')
 
 
 def git_path(path):
+    """Returns the top-level git path."""
     dir_ = path
     if os.path.isfile(path):
         dir_ = os.path.split(path)[0]

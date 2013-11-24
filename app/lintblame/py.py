@@ -1,5 +1,3 @@
-# https://bitbucket.org/logilab/pylint
-from pylint.epylint import py_run as pylint_run
 import re
 import subprocess
 
@@ -8,17 +6,6 @@ PEP8_REX = re.compile(r'\w+:(\d+):(\d+):\s(\w+)\s(.+)$', re.MULTILINE)
 PYLINT_REX = re.compile(r'^(\w):\s+(\d+),\s*(\d+):\s(.+)$', re.MULTILINE)
 PYFLAKES_REX = re.compile(r'\w+:(\d+):\s(.+)$', re.MULTILINE)
 JSHINT_REX = re.compile(r'\w+: line (\d+), col (\d+),\s(.+)$', re.MULTILINE)
-
-
-def pylint_(path):
-    """Returns pylint results."""
-    print('linting path: {0}'.format(path))
-    out, err = pylint_run(return_std=True, script=path)
-    for line in out:
-        print('line: {0}'.format(line))
-    for line in err:
-        print('line: {0}'.format(line))
-    return out
 
 
 def pylint(path):

@@ -8,6 +8,7 @@ from flask import (
     abort,
 )
 
+
 from app.lintblame import git
 from app.lintblame import py
 
@@ -121,18 +122,16 @@ def poll_paths():
         poll_paths = get_path_targets(request_paths[0])
 
     full_scan = request.args.get('fullScan', False)
-    logger.info('full_scan: {0}'.format(full_scan))
     full_scan = full_scan and full_scan != 'false'
-    logger.info('full_scan: {0}'.format(full_scan))
 
     since = float(int(request.args.get('since')) / 1000)
     response = {
         'changed': {}
     }
+
     for p in poll_paths:
         mod = os.path.getmtime(p)
-
-        if full_scan or mod + 2 > since:
+        if full_scan or mod + 2000 > since:
             response['changed'][p] = _get_results(p)
 
     if branch_mode:
