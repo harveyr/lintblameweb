@@ -38,6 +38,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     $scope.startPolling = ->
         stopPolling()
+        $scope.isPolling = true
 
         $scope.pollInterval = setInterval ->
             thresholdPaths = $scope.targets
@@ -61,14 +62,12 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
                 $rootScope.noPaths = true
                 console.log 'not polling because no paths'
         , 2000
-        $scope.isPolling = true
 
     $scope.togglePolling = ->
         if $scope.isPolling
             stopPolling()
         else
             $scope.startPolling()
-        $scope.isPolling = !$scope.isPolling
         $rootScope.updateLintBundle {'isPolling': $scope.isPolling}
 
     $scope.acceptPath = ->

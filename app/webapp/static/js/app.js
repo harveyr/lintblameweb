@@ -519,7 +519,8 @@
     };
     $scope.startPolling = function() {
       stopPolling();
-      $scope.pollInterval = setInterval(function() {
+      $scope.isPolling = true;
+      return $scope.pollInterval = setInterval(function() {
         var fullScan, thresholdPaths;
         thresholdPaths = $scope.targets;
         fullScan = thresholdPaths.length && !$rootScope.activePaths().length;
@@ -536,7 +537,6 @@
           return console.log('not polling because no paths');
         }
       }, 2000);
-      return $scope.isPolling = true;
     };
     $scope.togglePolling = function() {
       if ($scope.isPolling) {
@@ -544,7 +544,6 @@
       } else {
         $scope.startPolling();
       }
-      $scope.isPolling = !$scope.isPolling;
       return $rootScope.updateLintBundle({
         'isPolling': $scope.isPolling
       });

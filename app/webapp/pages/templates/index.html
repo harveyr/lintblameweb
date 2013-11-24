@@ -84,12 +84,12 @@
                         <div ng-repeat="path in sortedPaths" lint-issues></div>
                     </div>
                 </div>
-                <div ng-show="!lintBundle.lints.length">
+                <div ng-show="!lintBundle.fullPath || noPaths">
                     <div class="code">
                         <span ng-show="!lintBundle.fullPath">
-                            Enter a path.
+                            Choose your path.
                         </span>
-                        <span ng-show="lintBundle.fullPath">
+                        <span ng-show="lintBundle.fullPath && noPaths">
                             No modified files were found.
                         </span>
                     </div>
