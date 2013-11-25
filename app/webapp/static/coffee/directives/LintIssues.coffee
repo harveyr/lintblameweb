@@ -33,7 +33,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                     </div>
                 </div>
                 <div ng-repeat="line in sortedLines" class="line-wrapper" ng-show="!demotions[path]">
-                    <div class="label label-warning line">
+                    <div class="code line">
                         {{line}}
                     </div>
                     <div class="detail">

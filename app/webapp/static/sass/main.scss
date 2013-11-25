@@ -212,6 +212,8 @@ a {
         .line {
             display: inline-block;
             margin-right: 5px;
+            color: $dim;
+            font-weight: bold;
         }
         .detail {
             display: inline-block;            

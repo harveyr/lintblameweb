@@ -133,7 +133,9 @@ a.danger:hover {
     margin: 10px 0 10px 0; }
     .lint-issues .line-wrapper .line {
       display: inline-block;
-      margin-right: 5px; }
+      margin-right: 5px;
+      color: #b3b3b3;
+      font-weight: bold; }
     .lint-issues .line-wrapper .detail {
       display: inline-block; }
   .lint-issues .issue {
