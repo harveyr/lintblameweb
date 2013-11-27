@@ -3,16 +3,12 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
         replace: true
         template: """
             <div class="saved-target">
-                <input type="text"
-                    class="form-control code"
-                    ng-model="m.saveName"
-                    ng-change="saveNameChange()"
-                    placeholder="Save Name">
-
-                <div class="tiny save-details">
-                    <span class="dim">
-                        {{m.path}}
-                    </span>
+                <div class="save-details">
+                    <a ng-click="loadSavePath(path)">
+                        <span class="dim">
+                            {{m.path}}
+                        </span>
+                    </a>
                     <div class="pull-right highlight" ng-show="m.bundle.branchMode">
                         Br
                     </div>
@@ -21,11 +17,6 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
                     <a class="danger" ng-click="deleteSave()">
                         <span class="glyphicon glyphicon-remove-circle"></span>
                     </a>
-                    <div class="pull-right">
-                        <a ng-click="loadSavePath(path)">
-                            <span class="glyphicon glyphicon-arrow-right"></span>
-                        </a>
-                    </div>
                 </div>
             </div>
         """

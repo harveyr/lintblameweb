@@ -87,9 +87,6 @@ app = angular.module(APP_NAME, [
         lastRefresh += secs
         $rootScope.lastRefresh = lastRefresh
 
-    $rootScope.loadSavePath = (path) ->
-        $rootScope.loadedSavePath = path
-
     $rootScope.resetLintBundle = ->
         $rootScope.lintBundle = {
             lints: {}

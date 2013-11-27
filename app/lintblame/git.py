@@ -32,7 +32,6 @@ def git_branch(path):
     working_dir = path
     if not os.path.isdir(path):
         working_dir = os.path.split(path)[0]
-    print('w-orking_dir: {0}'.format(working_dir))
     proc = subprocess.Popen(
         ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
         stdout=subprocess.PIPE,
@@ -40,8 +39,6 @@ def git_branch(path):
         cwd=working_dir
     )
     out, err = proc.communicate()
-    print('err: {0}'.format(err))
-    print('out: {0}'.format(out))
     if err:
         return None
     return out.strip()

@@ -23,10 +23,6 @@
                 <div class="title">
                     <span>thunder</span>box
                 </div>
-
-                <div class="saves-wrapper" ng-controller="SavesCtrl">
-                    <div ng-repeat="(path, data) in saves" saved-target></div>
-                </div>
             </div>
             <div class="col-sm-9 col-md-10 col-xs-8">
                 <div ng-controller="MenuCtrl" class="menu-wrapper">
@@ -41,17 +37,22 @@
                             </div>
                         </div>
                         <div class="col-sm-1 col-xs-2">
-                            <div>
-                                <button class="btn btn-success btn-xs"
-                                    ng-show="showSubmitBtn && targetPathInput.length"
-                                    ng-click="acceptPath()"
-                                >
-                                    Okay!
-                                </button>
-                            </div>
+                            <a ng-click="showSaves = !showSaves">
+                                <span class="glyphicon glyphicon-list"></span>
+                            </a>
+                            &nbsp;
+                            <button class="btn btn-success btn-xs"
+                                ng-show="showSubmitBtn && targetPathInput.length"
+                                ng-click="acceptPath()"
+                            >
+                                Okay!
+                            </button>
                         </div>
                         <div class="pull-right">
                             <div class="pull-right" id="loading"></div>
+                        </div>
+                        <div class="saves-wrapper" ng-show="showSaves">
+                            <div ng-repeat="(path, data) in saves" saved-target></div>
                         </div>
                     </div>
                     <div class="submenu-row">
@@ -79,20 +80,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-sm-12" ng-controller="ResultsCtrl">
-                        <div ng-repeat="path in sortedPaths" lint-issues></div>
-                    </div>
-                </div>
-                <div ng-show="!lintBundle.fullPath || noPaths">
-                    <div class="code">
-                        <span ng-show="!lintBundle.fullPath">
-                            Choose your path.
-                        </span>
-                        <span ng-show="lintBundle.fullPath && noPaths">
-                            No modified files were found.
-                        </span>
-                    </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12" ng-controller="ResultsCtrl">
+                <div ng-repeat="path in sortedPaths" lint-issues></div>
+            </div>
+            <div ng-show="!lintBundle.fullPath || noPaths">
+                <div class="code">
+                    <span ng-show="!lintBundle.fullPath">
+                        Choose your path.
+                    </span>
+                    <span ng-show="lintBundle.fullPath && noPaths">
+                        No modified files were found.
+                    </span>
                 </div>
             </div>
         </div>

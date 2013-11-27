@@ -133,7 +133,15 @@ a {
 .saves-wrapper {
     // background-color: darken($bgColor, 3%);
     // padding: 10px;
-    margin-top: 6px;
+    // margin-top: 6px;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.9);
+    border-radius: 4px;
+    position: absolute;
+    left: 15px;
+    top: 26px;;
+    width: 70%;
+    z-index: 1000;
 }
 
 .saved-target {
@@ -141,11 +149,6 @@ a {
     padding: 8px;
     border-radius: 4px;
     margin-bottom: 5px;
-    input {
-        height: 24px;
-        font-size: 12px;
-        color: $dim;
-    }
 
     .save-details {
         margin-top: 6px;

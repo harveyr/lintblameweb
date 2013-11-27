@@ -323,7 +323,7 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"saved-target\">\n    <input type=\"text\"\n        class=\"form-control code\"\n        ng-model=\"m.saveName\"\n        ng-change=\"saveNameChange()\"\n        placeholder=\"Save Name\">\n\n    <div class=\"tiny save-details\">\n        <span class=\"dim\">\n            {{m.path}}\n        </span>\n        <div class=\"pull-right highlight\" ng-show=\"m.bundle.branchMode\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n        <div class=\"pull-right\">\n            <a ng-click=\"loadSavePath(path)\">\n                <span class=\"glyphicon glyphicon-arrow-right\"></span>\n            </a>\n        </div>\n    </div>\n</div>",
+      template: "<div class=\"saved-target\">\n    <div class=\"save-details\">\n        <a ng-click=\"loadSavePath(path)\">\n            <span class=\"dim\">\n                {{m.path}}\n            </span>\n        </a>\n        <div class=\"pull-right highlight\" ng-show=\"m.bundle.branchMode\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n    </div>\n</div>",
       link: function(scope) {
         var frag, update;
         scope.m = {
@@ -465,9 +465,6 @@
       lastRefresh += secs;
       return $rootScope.lastRefresh = lastRefresh;
     };
-    $rootScope.loadSavePath = function(path) {
-      return $rootScope.loadedSavePath = path;
-    };
     $rootScope.resetLintBundle = function() {
       return $rootScope.lintBundle = {
         lints: {},
@@ -489,13 +486,14 @@
   });
 
   angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage) {
-    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath;
+    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath, updateSaves;
     $scope.showSubmitBtn = true;
     $scope.isPolling = false;
     $scope.pollCount = 0;
     $rootScope.acceptedLintPath = null;
     $scope.pendingPaths = [];
     $rootScope.resetLintBundle();
+    $scope.showSaves = false;
     testPath = function(andAccept) {
       var deferred, path;
       if (andAccept == null) {
@@ -608,16 +606,25 @@
       }
       $rootScope.resetLintBundle();
       savedBundle = LocalStorage.savedLintBundle(path);
-      console.log('savedBundle:', savedBundle);
+      savedBundle.lints = {};
       $rootScope.lintBundle = savedBundle;
       $scope.targetPathInput = path;
       $rootScope.acceptedLintPath = path;
       testPath(true);
       return $scope.showSaveBtn = false;
     };
-    return $scope.$watch('loadedSavePath', function() {
-      return loadSave($rootScope.loadedSavePath);
+    updateSaves = function() {
+      return $scope.saves = LocalStorage.savedLintBundles();
+    };
+    LocalStorage.addListener(function() {
+      return updateSaves();
     });
+    $scope.loadSavePath = function(path) {
+      $rootScope.loadedSavePath = path;
+      $scope.showSaves = false;
+      return loadSave($rootScope.loadedSavePath);
+    };
+    return updateSaves();
   });
 
   angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {

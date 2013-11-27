@@ -1,6 +1,6 @@
 import os
 import logging
-from collections import defaultdict
+import re
 from app.util import jsonify
 from flask import (
     request,
@@ -17,9 +17,15 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint('endpoints', __name__)
 
 
+EXCLUDE_REX = re.compile('jquery|underscore', re.IGNORECASE)
+
+
 def valid_target(path):
     ext = os.path.splitext(path)[1]
-    return ext in ['.py', '.go', '.js', '.json']
+    return (
+        ext in ['.py', '.go', '.js', '.json'] and
+        not EXCLUDE_REX.search(path)
+    )
 
 
 def get_path_or_400():
@@ -100,26 +106,18 @@ def _get_results(path):
     return result
 
 
-@blueprint.route('/fullscan')
-def fullscan():
-    joined_paths = request.args.get('paths')
-    if not joined_paths:
-        abort(404)
-    paths = [p for p in joined_paths.split(',') if os.path.exists(p)]
-    response = defaultdict(dict)
-    for p in paths:
-        response[p] = _get_results(p)
-    return jsonify(response)
-
-
 @blueprint.route('/poll')
 def poll_paths():
     request_paths = paths_or_400()
     branch_mode = request.args.get('branch')
     if branch_mode and branch_mode.lower() != 'false':
         poll_paths = [p for p in git.git_branch_files(request_paths[0])]
+        print('poll_paths: {0}'.format(poll_paths))
     else:
         poll_paths = get_path_targets(request_paths[0])
+        print('poll_paths: {0}'.format(poll_paths))
+    poll_paths = filter(valid_target, poll_paths)
+    print('poll_paths: {0}'.format(poll_paths))
 
     full_scan = request.args.get('fullScan', False)
     full_scan = full_scan and full_scan != 'false'

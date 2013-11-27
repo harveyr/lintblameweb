@@ -5,6 +5,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
     $rootScope.acceptedLintPath = null
     $scope.pendingPaths = []
     $rootScope.resetLintBundle()
+    $scope.showSaves = false
 
     testPath = (andAccept=false) ->
         deferred = $q.defer()
@@ -110,12 +111,24 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             return
         $rootScope.resetLintBundle()
         savedBundle = LocalStorage.savedLintBundle path
-        console.log 'savedBundle:', savedBundle
+        savedBundle.lints = {}
         $rootScope.lintBundle = savedBundle
         $scope.targetPathInput = path
         $rootScope.acceptedLintPath = path
         testPath(true)
         $scope.showSaveBtn = false
 
-    $scope.$watch 'loadedSavePath', ->
+    updateSaves = ->
+        $scope.saves = LocalStorage.savedLintBundles()
+
+    LocalStorage.addListener ->
+        updateSaves()
+
+    $scope.loadSavePath = (path) ->
+        $rootScope.loadedSavePath = path
+        $scope.showSaves = false
         loadSave $rootScope.loadedSavePath
+
+    # Init
+    updateSaves()
+
