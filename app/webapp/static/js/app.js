@@ -466,10 +466,11 @@
       return $rootScope.lastRefresh = lastRefresh;
     };
     $rootScope.resetLintBundle = function() {
-      return $rootScope.lintBundle = {
+      $rootScope.lintBundle = {
         lints: {},
         branchMode: false
       };
+      return $rootScope.sortedPaths = [];
     };
     $rootScope.saveCurrentBundle = function() {
       return LocalStorage.saveLintBundle($rootScope.lintBundle);

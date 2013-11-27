@@ -92,6 +92,7 @@ app = angular.module(APP_NAME, [
             lints: {}
             branchMode: false
         }
+        $rootScope.sortedPaths = []
 
     $rootScope.saveCurrentBundle = ->
         LocalStorage.saveLintBundle $rootScope.lintBundle
