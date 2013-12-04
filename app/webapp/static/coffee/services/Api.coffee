@@ -63,7 +63,7 @@ angular.module(SERVICE_MODULE).service 'Api', ($q, $http, $rootScope) ->
                 }
 
                 request.success (response) =>
-                    if not _.isEmpty response
+                    if not _.isEmpty response.changed
                         @lastUpdate = Date.now()
                     deferred.resolve response
                     @pendingPoll = false

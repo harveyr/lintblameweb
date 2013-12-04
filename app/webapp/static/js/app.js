@@ -111,7 +111,7 @@
             cache: false
           });
           request.success(function(response) {
-            if (!_.isEmpty(response)) {
+            if (!_.isEmpty(response.changed)) {
               _this.lastUpdate = Date.now();
             }
             deferred.resolve(response);
@@ -483,7 +483,8 @@
   });
 
   angular.module(APP_NAME).controller('MenuCtrl', function($scope, $rootScope, $q, Api, LocalStorage) {
-    var hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath, updateSaves;
+    var POLL_INTERVAL, hideSaveBtn, loadSave, showSaveBtn, stopPolling, targetPathChange, testPath, updateSaves;
+    POLL_INTERVAL = 2500;
     $scope.showSubmitBtn = true;
     $scope.isPolling = false;
     $scope.pollCount = 0;
@@ -546,7 +547,7 @@
           $rootScope.noPaths = true;
           return console.log('not polling because no paths');
         }
-      }, 2000);
+      }, POLL_INTERVAL);
     };
     $scope.togglePolling = function() {
       if ($scope.isPolling) {

@@ -132,7 +132,7 @@ def poll_paths():
 
     for p in poll_paths:
         mod = os.path.getmtime(p)
-        if full_scan or mod + 2000 > since:
+        if full_scan or mod > since:
             response['changed'][p] = _results_dict(p)
             response['changed'][p]['modtime'] = mod
 

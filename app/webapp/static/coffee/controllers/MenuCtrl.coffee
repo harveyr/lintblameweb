@@ -1,4 +1,6 @@
 angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, LocalStorage) ->
+    POLL_INTERVAL = 2500
+
     $scope.showSubmitBtn = true
     $scope.isPolling = false
     $scope.pollCount = 0
@@ -62,7 +64,7 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
             else
                 $rootScope.noPaths = true
                 console.log 'not polling because no paths'
-        , 2000
+        , POLL_INTERVAL
 
     $scope.togglePolling = ->
         if $scope.isPolling
