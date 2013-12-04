@@ -323,16 +323,15 @@
     var directive;
     return directive = {
       replace: true,
-      template: "<div class=\"saved-target\">\n    <div class=\"save-details\">\n        <a ng-click=\"loadSavePath(path)\">\n            <span class=\"dim\">\n                {{m.path}}\n            </span>\n        </a>\n        <div class=\"pull-right highlight\" ng-show=\"m.bundle.branchMode\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n    </div>\n</div>",
+      template: "<div class=\"saved-target\">\n    <div class=\"save-details\">\n        <a ng-click=\"loadSavePath(path)\">\n            <span class=\"dim\">{{m.pathHead}}/</span><strong>{{m.pathTail}}</strong>\n        </a>\n        <div class=\"pull-right highlight\" ng-show=\"m.bundle.branchMode\">\n            Br\n        </div>\n    </div>\n    <div class=\"small actions\">\n        <a class=\"danger\" ng-click=\"deleteSave()\">\n            <span class=\"glyphicon glyphicon-remove-circle\"></span>\n        </a>\n    </div>\n</div>",
       link: function(scope) {
-        var frag, update;
+        var parts, update;
         scope.m = {
           path: scope.path
         };
-        if (scope.path.length > 20) {
-          frag = scope.path.substr(17);
-          scope.m.path = "..." + frag;
-        }
+        parts = scope.path.split('/');
+        scope.m.pathHead = parts.slice(0, parts.length - 1).join('/');
+        scope.m.pathTail = parts[parts.length - 1];
         if (_.has(scope.data, 'saveName')) {
           scope.m.saveName = scope.data.saveName;
         }
@@ -449,7 +448,7 @@
       }
       paths = _.keys($rootScope.lintBundle.lints);
       $rootScope.sortedPaths = paths.sort(function(a, b) {
-        return Lints.issueCount($rootScope.lintBundle.lints[b]) - Lints.issueCount($rootScope.lintBundle.lints[a]);
+        return $rootScope.lintBundle.lints[b].modtime - $rootScope.lintBundle.lints[a].modtime;
       });
       now = new Date();
       lastRefresh = now.getHours() + ':';
@@ -631,10 +630,13 @@
   angular.module(APP_NAME).controller('ResultsCtrl', function($scope, $rootScope, $interval, Api) {
     $scope.demotions = {};
     return $scope.$on('demote', function(e, path) {
-      if (!_.has($scope.demotions, path)) {
-        return $scope.demotions[path] = true;
+      if (!_.has($rootScope.lintBundle, 'demotions')) {
+        $rootScope.lintBundle.demotions = {};
+      }
+      if (!_.has($rootScope.lintBundle.demotions, path)) {
+        return $rootScope.lintBundle.demotions[path] = true;
       } else {
-        return $scope.demotions[path] = !$scope.demotions[path];
+        return $rootScope.lintBundle.demotions[path] = !$rootScope.lintBundle.demotions[path];
       }
     });
   });

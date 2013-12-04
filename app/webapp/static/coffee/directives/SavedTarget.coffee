@@ -5,9 +5,7 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
             <div class="saved-target">
                 <div class="save-details">
                     <a ng-click="loadSavePath(path)">
-                        <span class="dim">
-                            {{m.path}}
-                        </span>
+                        <span class="dim">{{m.pathHead}}/</span><strong>{{m.pathTail}}</strong>
                     </a>
                     <div class="pull-right highlight" ng-show="m.bundle.branchMode">
                         Br
@@ -24,9 +22,13 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
             scope.m =
                 path: scope.path
                 
-            if scope.path.length > 20
-                frag = scope.path.substr(17)
-                scope.m.path = "...#{frag}"
+            parts = scope.path.split('/')
+            scope.m.pathHead = parts[0...parts.length - 1].join('/')
+            scope.m.pathTail = parts[parts.length - 1]
+
+            # if scope.path.length > 20
+            #     frag = scope.path.substr(17)
+            #     scope.m.path = "...#{frag}"
 
             if _.has scope.data, 'saveName'
                 scope.m.saveName = scope.data.saveName

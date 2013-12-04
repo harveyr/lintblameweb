@@ -71,8 +71,8 @@ app = angular.module(APP_NAME, [
         paths = _.keys $rootScope.lintBundle.lints
         $rootScope.sortedPaths = paths.sort (a, b) ->
             return (
-                Lints.issueCount($rootScope.lintBundle.lints[b]) -
-                Lints.issueCount($rootScope.lintBundle.lints[a])
+                $rootScope.lintBundle.lints[b].modtime -
+                $rootScope.lintBundle.lints[a].modtime
             )
 
         now = new Date()

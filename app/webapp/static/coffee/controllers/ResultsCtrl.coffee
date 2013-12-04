@@ -2,7 +2,9 @@ angular.module(APP_NAME).controller 'ResultsCtrl', ($scope, $rootScope, $interva
     $scope.demotions = {}
 
     $scope.$on 'demote', (e, path) ->
-        if not _.has $scope.demotions, path
-            $scope.demotions[path] = true
+        if not _.has $rootScope.lintBundle, 'demotions'
+            $rootScope.lintBundle.demotions = {}
+        if not _.has $rootScope.lintBundle.demotions, path
+            $rootScope.lintBundle.demotions[path] = true
         else
-            $scope.demotions[path] = !$scope.demotions[path]
+            $rootScope.lintBundle.demotions[path] = !$rootScope.lintBundle.demotions[path]

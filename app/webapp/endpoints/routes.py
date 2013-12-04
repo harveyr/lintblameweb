@@ -1,14 +1,15 @@
 import os
 import logging
 import re
-from app.util import jsonify
+import datetime
+
 from flask import (
     request,
     Blueprint,
     abort,
 )
 
-
+from app.util import jsonify
 from app.lintblame import git
 from app.lintblame import py
 
@@ -18,6 +19,11 @@ blueprint = Blueprint('endpoints', __name__)
 
 
 EXCLUDE_REX = re.compile('jquery|underscore', re.IGNORECASE)
+
+
+def js_timestamp(dt):
+    epoch = datetime.datetime(1970, 1, 1)
+    return int((dt - epoch).total_seconds()) * 1000
 
 
 def valid_target(path):
@@ -90,7 +96,7 @@ def test_path():
     return jsonify(response)
 
 
-def _get_results(path):
+def _results_dict(path):
     result = {}
     with open(path, 'r') as f:
         result['lines'] = f.read().splitlines()
@@ -112,12 +118,9 @@ def poll_paths():
     branch_mode = request.args.get('branch')
     if branch_mode and branch_mode.lower() != 'false':
         poll_paths = [p for p in git.git_branch_files(request_paths[0])]
-        print('poll_paths: {0}'.format(poll_paths))
     else:
         poll_paths = get_path_targets(request_paths[0])
-        print('poll_paths: {0}'.format(poll_paths))
     poll_paths = filter(valid_target, poll_paths)
-    print('poll_paths: {0}'.format(poll_paths))
 
     full_scan = request.args.get('fullScan', False)
     full_scan = full_scan and full_scan != 'false'
@@ -130,7 +133,8 @@ def poll_paths():
     for p in poll_paths:
         mod = os.path.getmtime(p)
         if full_scan or mod + 2000 > since:
-            response['changed'][p] = _get_results(p)
+            response['changed'][p] = _results_dict(p)
+            response['changed'][p]['modtime'] = mod
 
     if branch_mode:
         response['delete'] = [i for i in request_paths if i not in poll_paths]
