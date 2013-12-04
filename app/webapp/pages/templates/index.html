@@ -52,7 +52,7 @@
                             <div class="pull-right" id="loading"></div>
                         </div>
                         <div class="saves-wrapper" ng-show="showSaves">
-                            <div ng-repeat="(path, data) in saves" saved-target></div>
+                            <div ng-repeat="path in sortedSavePaths" saved-target></div>
                         </div>
                     </div>
                     <div class="submenu-row">

@@ -332,9 +332,6 @@
         parts = scope.path.split('/');
         scope.m.pathHead = parts.slice(0, parts.length - 1).join('/');
         scope.m.pathTail = parts[parts.length - 1];
-        if (_.has(scope.data, 'saveName')) {
-          scope.m.saveName = scope.data.saveName;
-        }
         update = function() {
           scope.m.bundle = LocalStorage.savedLintBundle(scope.path);
           if (!scope.m.bundle) {
@@ -614,7 +611,12 @@
       return $scope.showSaveBtn = false;
     };
     updateSaves = function() {
-      return $scope.saves = LocalStorage.savedLintBundles();
+      var paths;
+      $scope.saves = LocalStorage.savedLintBundles();
+      paths = _.keys($scope.saves);
+      return $scope.sortedSavePaths = paths.sort(function(a, b) {
+        return $scope.saves[b].updated - $scope.saves[a].updated;
+      });
     };
     LocalStorage.addListener(function() {
       return updateSaves();

@@ -26,19 +26,13 @@ angular.module(DIRECTIVE_MODULE).directive 'savedTarget', ($rootScope, LocalStor
             scope.m.pathHead = parts[0...parts.length - 1].join('/')
             scope.m.pathTail = parts[parts.length - 1]
 
-            # if scope.path.length > 20
-            #     frag = scope.path.substr(17)
-            #     scope.m.path = "...#{frag}"
-
-            if _.has scope.data, 'saveName'
-                scope.m.saveName = scope.data.saveName
-
             update = ->
                 scope.m.bundle = LocalStorage.savedLintBundle scope.path
                 if not scope.m.bundle
                     throw "Unable to get saved bundle for path #{scope.path}"
 
             scope.saveNameChange = ->
+                # Not currently in use
                 LocalStorage.setSaveName scope.path, scope.m.saveName
 
             scope.deleteSave = ->

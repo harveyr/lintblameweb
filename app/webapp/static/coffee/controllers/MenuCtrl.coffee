@@ -120,6 +120,10 @@ angular.module(APP_NAME).controller 'MenuCtrl', ($scope, $rootScope, $q, Api, Lo
 
     updateSaves = ->
         $scope.saves = LocalStorage.savedLintBundles()
+        paths = _.keys $scope.saves
+        $scope.sortedSavePaths = paths.sort (a, b) ->
+            return $scope.saves[b].updated - $scope.saves[a].updated
+
 
     LocalStorage.addListener ->
         updateSaves()
