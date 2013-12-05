@@ -2,7 +2,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
     directive =
         replace: true
         template: """
-            <div class="lint-issues" ng-class="{demoted: demotions[path]}">
+            <div class="lint-issues" ng-class="{demoted: isDemoted}">
                 <div class="path hover-parent">
                     
                     <span class="label {{countClass}}">
@@ -23,16 +23,16 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
     
                     <div class="pull-right demotion-options hover-target">
                         <a ng-click="demote(path)">
-                            <span ng-show="!demotions[path]"
+                            <span ng-show="!isDemoted"
                                 class="glyphicon glyphicon-minus-sign dim hover-bright">
                             </span>
-                            <span ng-show="demotions[path]"
+                            <span ng-show="isDemoted"
                                 class="glyphicon glyphicon-plus-sign dim hover-bright">
                             </span>
                         </a>
                     </div>
                 </div>
-                <div ng-repeat="line in sortedLines" class="line-wrapper" ng-show="!demotions[path]">
+                <div ng-repeat="line in sortedLines" class="line-wrapper" ng-show="!isDemoted">
                     <div class="code line">
                         {{line}}
                     </div>
@@ -114,6 +114,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
 
             scope.demote = (path) ->
                 scope.$emit 'demote', path
+                scope.isDemoted = $rootScope.lintBundle.demotions[path]
 
 
             scope.copyPath = ->
