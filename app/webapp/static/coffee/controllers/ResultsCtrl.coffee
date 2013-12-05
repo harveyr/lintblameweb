@@ -8,3 +8,4 @@ angular.module(APP_NAME).controller 'ResultsCtrl', ($scope, $rootScope, $interva
             $rootScope.lintBundle.demotions[path] = true
         else
             $rootScope.lintBundle.demotions[path] = !$rootScope.lintBundle.demotions[path]
+        $rootScope.saveCurrentBundle()

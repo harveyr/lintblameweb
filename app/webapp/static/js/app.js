@@ -249,7 +249,7 @@
     var directive;
     return directive = {
       replace: true,
-      template: "        <div class=\"lint-issues\" ng-class=\"{demoted: isDemoted}\">\n            <div class=\"path hover-parent\">\n                \n                <span class=\"label {{countClass}}\">\n                    <span class=\"glyphicon {{countIcon}}\"></span>\n                </span>\n                \n                &nbsp;\n                \n                <span class=\"path-parts\">\n                    <span class=\"head\">{{pathHead}}/</span><span class=\"tail\">{{pathTail}}</span>\n                </span>\n                    \n                &nbsp;\n\n                <a ng-click=\"copyPath()\" class=\"hover-target-inbl\">\n                    <span class=\"glyphicon glyphicon-open\"></span>\n                </a>\n\n                <div class=\"pull-right demotion-options hover-target\">\n                    <a ng-click=\"demote(path)\">\n                        <span ng-show=\"!isDemoted\"\n                            class=\"glyphicon glyphicon-minus-sign dim hover-bright\">\n                        </span>\n                        <span ng-show=\"isDemoted\"\n                            class=\"glyphicon glyphicon-plus-sign dim hover-bright\">\n                        </span>\n                    </a>\n                </div>\n            </div>\n            <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!isDemoted\">\n                <div class=\"code line\">\n                    {{line}}\n                </div>\n                <div class=\"detail\">\n                    <code class=\"code\">\n                        {{data.lines[line - 1]}}\n                    </code>\n                    <table>\n                        <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                            <td class=\"{{blameClass(line)}}\">\n                                [{{blameLine(issue.line)}}]\n                            </td>\n                            <td class=\"reporter\">\n                                {{issue.reporter}}\n                                {{issue.code}}\n                            </td>\n                            <td>\n                                {{issue.message}}\n                            </td>\n                        </tr>\n                    </table>\n                </div>\n            </div>\n        </div>",
+      template: "        <div class=\"lint-issues\" ng-class=\"{demoted: isDemoted}\">\n            <div class=\"path hover-parent\">\n                \n                <span class=\"label {{countClass}}\">\n                    <span class=\"glyphicon {{countIcon}}\"></span>\n                </span>\n                \n                &nbsp;\n                \n                <span class=\"path-parts\">\n                    <span class=\"head\">{{pathHead}}/</span><span class=\"tail\">{{pathTail}}</span>\n                </span>\n                    \n                &nbsp;\n\n                <a ng-click=\"copyPath()\" class=\"hover-target-inbl\">\n                    <span class=\"glyphicon glyphicon-open\"></span>\n                </a>\n\n                <div class=\"pull-right demotion-options hover-target\">\n                    <a ng-click=\"demote()\">\n                        <span ng-show=\"!isDemoted\"\n                            class=\"glyphicon glyphicon-minus-sign dim hover-bright\">\n                        </span>\n                        <span ng-show=\"isDemoted\"\n                            class=\"glyphicon glyphicon-plus-sign dim hover-bright\">\n                        </span>\n                    </a>\n                </div>\n            </div>\n            <div ng-repeat=\"line in sortedLines\" class=\"line-wrapper\" ng-show=\"!isDemoted\">\n                <div class=\"code line\">\n                    {{line}}\n                </div>\n                <div class=\"detail\">\n                    <code class=\"code\">\n                        {{data.lines[line - 1]}}\n                    </code>\n                    <table>\n                        <tr ng-repeat=\"issue in issuesByLine[line]\" class=\"issue\">\n                            <td class=\"{{blameClass(line)}}\">\n                                [{{blameLine(issue.line)}}]\n                            </td>\n                            <td class=\"reporter\">\n                                {{issue.reporter}}\n                                {{issue.code}}\n                            </td>\n                            <td>\n                                {{issue.message}}\n                            </td>\n                        </tr>\n                    </table>\n                </div>\n            </div>\n        </div>",
       link: function(scope) {
         scope.update = function() {
           var issue, issuesByLine, line, lineInts, lintData, parts, relPath, splitStr, totalCount, _i, _len, _ref;
@@ -292,7 +292,11 @@
           }
           parts = relPath.split('/');
           scope.pathTail = parts.pop();
-          return scope.pathHead = parts.join('/');
+          scope.pathHead = parts.join('/');
+          return scope.updateIsDemoted();
+        };
+        scope.updateIsDemoted = function() {
+          return scope.isDemoted = $rootScope.lintBundle.demotions[scope.path];
         };
         scope.blameLine = function(line) {
           return scope.data.blame[line - 1];
@@ -309,9 +313,9 @@
         scope.$watch('lastRefresh', function() {
           return scope.update();
         });
-        scope.demote = function(path) {
-          scope.$emit('demote', path);
-          return scope.isDemoted = $rootScope.lintBundle.demotions[path];
+        scope.demote = function() {
+          scope.$emit('demote', scope.path);
+          return scope.updateIsDemoted();
         };
         return scope.copyPath = function() {
           return window.prompt("Copy to clipboard: Ctrl+C, Enter", scope.lintBundle.fullPath + '/' + scope.pathTail);
@@ -638,10 +642,11 @@
         $rootScope.lintBundle.demotions = {};
       }
       if (!_.has($rootScope.lintBundle.demotions, path)) {
-        return $rootScope.lintBundle.demotions[path] = true;
+        $rootScope.lintBundle.demotions[path] = true;
       } else {
-        return $rootScope.lintBundle.demotions[path] = !$rootScope.lintBundle.demotions[path];
+        $rootScope.lintBundle.demotions[path] = !$rootScope.lintBundle.demotions[path];
       }
+      return $rootScope.saveCurrentBundle();
     });
   });
 

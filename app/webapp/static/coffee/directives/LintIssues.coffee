@@ -22,7 +22,7 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                     </a>
     
                     <div class="pull-right demotion-options hover-target">
-                        <a ng-click="demote(path)">
+                        <a ng-click="demote()">
                             <span ng-show="!isDemoted"
                                 class="glyphicon glyphicon-minus-sign dim hover-bright">
                             </span>
@@ -99,6 +99,11 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
                 scope.pathTail = parts.pop()
                 scope.pathHead = parts.join('/')
 
+                scope.updateIsDemoted()
+
+            scope.updateIsDemoted = ->
+                scope.isDemoted = $rootScope.lintBundle.demotions[scope.path]
+
             scope.blameLine = (line) ->
                 return scope.data.blame[line - 1]
 
@@ -112,10 +117,9 @@ angular.module(DIRECTIVE_MODULE).directive 'lintIssues', ($rootScope) ->
             scope.$watch 'lastRefresh', ->
                 scope.update()
 
-            scope.demote = (path) ->
-                scope.$emit 'demote', path
-                scope.isDemoted = $rootScope.lintBundle.demotions[path]
-
+            scope.demote = () ->
+                scope.$emit 'demote', scope.path
+                scope.updateIsDemoted()
 
             scope.copyPath = ->
                 window.prompt "Copy to clipboard: Ctrl+C, Enter", 
